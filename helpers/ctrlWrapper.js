@@ -3,7 +3,7 @@ const ctrlWrapper = ctrl => {
     try {
       await ctrl(req, res, next);
     } catch (error) {
-      if (!error.status) error.message = 'Server error';
+      // if (!error.status) error.message = 'Server error';
       next(error);
     }
   };

@@ -37,6 +37,10 @@ const registerUser = async (req, res, next) => {
   });
 };
 
+const getCurrentUser = (req, res, next) => {
+  const { name, email, theme, avatar, token } = req.user;
+  res.send({ name, email, theme, avatar, token });
+};
 // Login + Joi OK
 
 const loginUser = async (req, res, next) => {
@@ -54,7 +58,7 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(200).json(token); // повертаем тільки токен, чи весь юзер?
+  res.status(200).json(token); //  Все, крім пароля
 };
 
 // Логаут ОК
@@ -72,11 +76,11 @@ const logoutUser = async (req, res, next) => {
 
 const modifyUserTheme = async (req, res, next) => {
   const { id } = req.params;
-  const result = await changeUser({ _id: id }, req.body); // joi міняєм тему
+  const result = await changeUser({ _id: id }, req.body);
   if (!result) {
     throw HttpError(404, 'Not found');
   }
-  res.status(200).json(result); // повертає всього юзера
+  res.status(200).json(result.theme); // повертає тему
 };
 
 const updateUser = async (req, res, next) => {
@@ -113,4 +117,5 @@ export default {
   logoutUser: ctrlWrapper(logoutUser),
   modifyUserTheme: ctrlWrapper(modifyUserTheme),
   updateUser: ctrlWrapper(updateUser),
+  getCurrentUser,
 };

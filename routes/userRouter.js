@@ -11,6 +11,7 @@ import authMiddleware from '../middlewares/authenticate.js';
 
 const userRouter = express.Router();
 
+userRouter.get('/current', authMiddleware, userCtrl.getCurrentUser);
 userRouter.post(
   '/register',
   validateBody(createUserSchema),

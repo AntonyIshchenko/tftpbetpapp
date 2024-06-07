@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import HttpError from './helpers/httpError.js';
 
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
@@ -34,13 +35,15 @@ app.use('/api/tasks', authMiddleware, taskRouter);
 //   }
 // });
 
-app.use((_, res) => {
-  res.status(404).json({ message: 'Route not found' });
+app.use((req, res, next) => {
+  next(HttpError(404, 'Route not found'));
 });
 
 app.use((err, req, res, next) => {
-  const { status = 500, message = 'Server error' } = err;
-  res.status(status).json({ message });
+  res.status(err.statusCode).json({
+    status: err.status,
+    message: err.message,
+  });
 });
 
 export default app;

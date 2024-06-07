@@ -1,14 +1,8 @@
-const messageList = {
-  400: 'Bad Request',
-  401: 'Not authorized',
-  403: 'Forbidden',
-  404: 'Not Found',
-  409: 'Conflict',
-};
-
-const HttpError = (status, message = messageList[status]) => {
+const HttpError = (statusCode, message) => {
   const error = new Error(message);
-  error.status = status;
+  error.statusCode = statusCode;
+  error.status = statusCode >= 500 ? 'error' : 'fail';
+
   return error;
 };
 

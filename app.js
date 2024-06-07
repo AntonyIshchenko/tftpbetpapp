@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/users', userRouter);
-app.use('/api/tasks', authMiddleware, taskRouter);
+app.use('/api', authMiddleware, taskRouter);
 
 // app.get('/api/test', async (req, res, next) => {
 //   try {

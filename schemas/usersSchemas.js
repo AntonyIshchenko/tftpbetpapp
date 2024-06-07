@@ -18,6 +18,9 @@ export const createUserSchema = Joi.object({
     'string.min': 'Field "password" must be at least 8 characters long',
     'string.max': 'Field "password" must be at most 64 characters long',
   }),
+  theme: Joi.string().valid('light', 'dark', 'violet').messages({
+    'any.only': 'Theme must be one of "light", "dark", or "violet"',
+  }),
 });
 
 export const loginUserSchema = Joi.object({

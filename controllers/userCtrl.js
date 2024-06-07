@@ -5,42 +5,57 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
+const getUserResponseObject = user => {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    theme: user.theme,
+    avatar: user.avatar,
+  };
+};
+
 // Register + Joi OK
-
-// або токен утворюється з імейлу, або додатковий запит дл БД.
-
 const registerUser = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, theme } = req.body;
   const emailInLowerCase = email.toLowerCase();
   const existUser = await findUser({ email: emailInLowerCase });
   if (existUser !== null) {
     throw HttpError(409, 'Email in use');
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const token = jwt.sign({ id: emailInLowerCase }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
+  const validThemes = ['light', 'dark', 'violet'];
+  const userTheme = validThemes.includes(theme) ? theme : 'light';
   const userData = {
     name,
     email: emailInLowerCase,
     password: passwordHash,
-    token,
+    theme: userTheme,
   };
   const user = await addUser(userData);
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.TOKEN_EXPIRES_IN,
+  });
+  const updatedUser = await changeUser({ _id: user._id }, { token });
   res.status(201).json({
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
+    status: 'success',
+    data: {
+      user: getUserResponseObject(updatedUser),
+      token: token,
     },
-    token,
   });
 };
 
 const getCurrentUser = (req, res, next) => {
-  const { name, email, theme, avatar, token } = req.user;
-  res.send({ name, email, theme, avatar, token });
+  const userResponse = getUserResponseObject(req.user);
+  res.status(201).json({
+    status: 'success',
+    data: {
+      user: userResponse,
+    },
+  });
 };
+
 // Login + Joi OK
 
 const loginUser = async (req, res, next) => {
@@ -48,7 +63,7 @@ const loginUser = async (req, res, next) => {
   const emailInLowerCase = email.toLowerCase();
   const existUser = await findUser({ email: emailInLowerCase });
   if (existUser === null) {
-    throw HttpError(409, 'Email not found');
+    throw HttpError(401, 'Email or password is wrong');
   }
   const isMatch = await bcrypt.compare(password, existUser.password);
   if (!isMatch) {
@@ -58,7 +73,13 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(200).json(token); //  Все, крім пароля
+  res.status(201).json({
+    status: 'success',
+    data: {
+      user: getUserResponseObject(existUser),
+      token: token,
+    },
+  }); //  Все, крім пароля
 };
 
 // Логаут ОК
@@ -80,8 +101,15 @@ const modifyUserTheme = async (req, res, next) => {
   if (!result) {
     throw HttpError(404, 'Not found');
   }
-  res.status(200).json(result.theme); // повертає тему
+  res.status(200).json({
+    status: 'success',
+    data: {
+      theme: result.theme,
+    },
+  }); // повертає тему
 };
+
+// update + Joi OK
 
 const updateUser = async (req, res, next) => {
   const { id } = req.user;
@@ -93,7 +121,7 @@ const updateUser = async (req, res, next) => {
   if (email) {
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
-    if (existUser !== null) {
+    if (existUser !== null && existUser._id.toString() !== id) {
       throw HttpError(409, 'Email in use');
     }
     updates.email = emailInLowerCase;
@@ -108,7 +136,7 @@ const updateUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.status(200).json(updatedUser);
+  res.status(200).json(getUserResponseObject(updatedUser));
 };
 
 export default {

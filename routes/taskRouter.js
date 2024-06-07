@@ -1,10 +1,10 @@
 import express from 'express';
-import taskCtrls from '../controllers/taskCtrl';
+import taskCtrls from '../controllers/taskCtrl.js';
 
 const taskRouter = express.Router();
 
 // Шляхи до дошки (створити, змінити, видалити)
-//get всі борди, при завантаженні робочого стола юзера. 
+//get всі борди, при завантаженні робочого стола юзера.
 // get /boards/:id всі борди, таски і колонки по цьому борду...
 taskRouter.get('/boards', taskCtrls.getAllBoards);
 taskRouter.get('/boards/:id', taskCtrls.getOneBoard);

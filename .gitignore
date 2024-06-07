@@ -131,3 +131,9 @@ dist
 
 
 pullrequests-list.txt
+
+
+tmp*
+!tmp/gitkeep
+public/avatars*
+!public/avatars/.gitkeep

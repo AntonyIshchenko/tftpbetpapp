@@ -75,7 +75,7 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(201).json({
+  res.status(200).json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
@@ -96,43 +96,40 @@ const logoutUser = async (req, res, next) => {
 };
 
 const updateUser = async (req, res, next) => {
-  try {
-    const { id } = req.user;
-    const { name, email, password, theme } = req.body;
-    const updates = {};
-    if (name) {
-      updates.name = name;
-    }
-    if (email) {
-      const emailInLowerCase = email.toLowerCase();
-      const existUser = await findUser({ email: emailInLowerCase });
-      if (existUser !== null && existUser._id.toString() !== id) {
-        throw HttpError(409, 'Email in use');
-      }
-      updates.email = emailInLowerCase;
-    }
-    if (password) {
-      updates.password = await bcrypt.hash(password, 10);
-    }
-    if (req.file) {
-      fs.rename(
-        req.file.path,
-        path.resolve('public/avatars', req.file.filename)
-      );
-      updates.avatar = req.file.path;
-    }
-    if (theme) {
-      updates.theme = theme;
-    }
-
-    const updatedUser = await changeUser({ _id: id }, updates);
-    if (!updatedUser) {
-      throw HttpError(404, 'User not found');
-    }
-    res.status(200).json(getUserResponseObject(updatedUser));
-  } catch (error) {
-    next(error);
+  const { id } = req.user;
+  const { name, email, password, theme } = req.body;
+  const updates = {};
+  if (name) {
+    updates.name = name;
   }
+  if (email) {
+    const emailInLowerCase = email.toLowerCase();
+    const existUser = await findUser({ email: emailInLowerCase });
+    if (existUser !== null && existUser._id.toString() !== id) {
+      throw HttpError(409, 'Email in use');
+    }
+    updates.email = emailInLowerCase;
+  }
+  if (password) {
+    updates.password = await bcrypt.hash(password, 10);
+  }
+  if (req.file) {
+    await fs.unlink(req.file.path);
+    updates.avatar = req.file.path;
+  }
+  if (theme) {
+    updates.theme = theme;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ message: 'No fields to update' });
+  }
+
+  const updatedUser = await changeUser({ _id: id }, updates);
+  if (!updatedUser) {
+    throw HttpError(404, 'User not found');
+  }
+  res.status(200).json(getUserResponseObject(updatedUser));
 };
 
 export default {

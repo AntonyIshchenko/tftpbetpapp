@@ -4,7 +4,7 @@ import cors from 'cors';
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
 import authMiddleware from './middlewares/authenticate.js';
-import { handleContentType } from './middlewares/handleContentType.js';
+// import { handleContentType } from './middlewares/handleContentType.js';
 
 // import taskServices from './services/taskServices.js';
 

@@ -11,10 +11,8 @@ const board = {
     const data = await Promise.all([
       Board.findById(boardId),
       Column.find({ boardId }),
-      Task.find({ boardId }, { sort: 'deadline' }),
+      Task.find({ boardId }, '', { sort: 'deadline' }),
     ]);
-
-    console.log(data);
 
     return { board: data[0], columns: data[1], tasks: data[2] };
   },
@@ -22,7 +20,9 @@ const board = {
   getinfo: async boardId => Board.findById(boardId),
 
   update: async (boardId, data) =>
-    Board.findByIdAndUpdate(boardId, data, { new: true }),
+    Board.findByIdAndUpdate(boardId, data, {
+      new: true,
+    }),
 
   delete: async boardId => {
     await Task.deleteMany(boardId);
@@ -37,7 +37,9 @@ const column = {
   getAll: async boardId => Column.find(boardId),
 
   update: async (columnId, data) =>
-    Column.findByIdAndUpdate(columnId, data, { new: true }),
+    Column.findByIdAndUpdate(columnId, data, {
+      new: true,
+    }),
 
   delete: async columnId => {
     await Task.deleteMany(columnId);
@@ -51,7 +53,9 @@ const task = {
   getAll: async boardId => Task.find(boardId),
 
   update: async (taskId, data) =>
-    Task.findByIdAndUpdate(taskId, data, { new: true }),
+    Task.findByIdAndUpdate(taskId, data, {
+      new: true,
+    }),
 
   delete: async taskId => {
     return await Task.findByIdAndDelete(taskId);

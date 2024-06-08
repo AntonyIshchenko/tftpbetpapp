@@ -5,14 +5,14 @@ const columnSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Set name for Column'],
     },
-    // тут ID дошки, до якої відноситься колонка
+
     boardId: {
         type: mongoose.Types.ObjectId,
         required: [true, 'Set boardId for Column'],
-        ref: 'Board', // посилаємось на модель дошки 'Board'
+        ref: 'Board',
     },
 },
-    { timestamps: true, versionKey: false } // залишаємо ?
+    { timestamps: true, versionKey: false }
 );
 
 const Column = mongoose.model('Column', columnSchema);

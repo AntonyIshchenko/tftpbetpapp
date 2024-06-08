@@ -1,64 +1,63 @@
 import HttpError from "../helpers/httpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
 import taskServices from "../services/taskServices.js";
-import 'dotenv/config';
 
-// ------------------------ Контролери для Board! Done!
+const successResponse = (res, data, statusCode = 200) => {
+  res.status(statusCode).json({ status: 'success', data });
+};
+
+// ------------------------ Контролери для Board
 const getAllBoards = async (req, res) => {
   const userId = req.user.id;
-  //отримуємо всі дошки, які знаходяться в нашій БД
   const board = await taskServices.board.getAll(userId);
 
-  res.success(board, 200);
+  successResponse(res, board);
 }
 
-// ----------
 const getOneBoard = async (req, res) => {
   const { id } = req.params;
-  //цим методом шукаємо дошку, за вказаним ідентифікатором
   const board = await taskServices.board.getinfo({ _id: id });
 
   if (!board) {
     throw HttpError(404);
   }
 
-  res.success(board, 200);
+  successResponse(res, board);
 }
 
-// ----------
 const createBoard = async (req, res) => {
   const board = await taskServices.board.create({
-    ...req.body, // копіюємо всі дані з тіла запиту,
-    owner: req.user._id, // додаємо власника дошки, який зберігається в об'єкті req.user
+    ...req.body,
+    owner: req.user._id, // власник дошки
   });
 
-  res.success(board, 200);
+  successResponse(res, board);
 }
 
-// ----------
 const editBoard = async (req, res) => {
-  const { id } = req.params;
-  //шукаємо дошку за ID і власником (owner) з використанням findOne.
-  const board = await taskServices.board.getData({ _id: id, owner: req.user.id });
+  //шукаємо дошку за ID і власником (owner) з використанням findOne. Обговоримо цю перевірку, пізніше
+  /*const board = await taskServices.board.getData({ _id: id, owner: req.user.id });
 
   if (!board) {
     throw HttpError(404);
-  }
-  //використовуємо параметр findByIdAndUpdate, для оновлення дошки, за ID, та за допомогою new: true, повертаємо оновлену дошку
+  }*/
+
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
   const updatedBoard = await taskServices.board.update(id, req.body, { new: true });
 
   if (!updatedBoard) {
     throw HttpError(404);
   }
 
-  res.success(updatedBoard, 200);
+  successResponse(res, updatedBoard);
 }
 
-// ----------
 const deleteBoard = async (req, res) => {
   const { id } = req.params;
 
-  //шукаємо дошку, за вказаним ідентифікатором та перевіряємо, чи вона належить саме тому користувачеві, який виконав запит
   const deletedBoard = await taskServices.board.delete({
     _id: id,
     owner: req.user.id,
@@ -68,62 +67,54 @@ const deleteBoard = async (req, res) => {
     throw HttpError(404);
   }
 
-  res.success(deletedBoard, 200);
+  successResponse(res, deletedBoard);
 }
 
 // ------------------------ Контролери для Колонки! Done!
 const createColumn = async (req, res) => {
-  const { name } = req.body;
-  //отримуємо значення властивості boardId з параметрів запиту,
-  const { boardId } = req.params;
+  const { boardId, name } = req.body;
 
   if (!name) {
     throw HttpError(400, 'Name is required');
   }
+
   // Створення нової колонки за допомогою заданих параметрів
   const newColumn = await taskServices.column.create({
     name,
     boardId,
   });
 
-  res.success(newColumn, 200);
+  successResponse(res, newColumn);
 }
 
 // ----------
 const editColumn = async (req, res) => {
-  //отримуємо ID колонки та дошки,
-  const { id, boardId } = req.params;
 
-  //цей метод оновлює колонку за вказаними умовами
-  const updatedColumn = await taskServices.column.update({
-    _id: id,
-    boardId,
-  },
-    req.body,
-    { new: true });
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
+
+  const updatedColumn = await taskServices.column.update(id, req.body, { new: true });
 
   if (!updatedColumn) {
     throw HttpError(404);
   }
 
-  res.success(updatedColumn);
+  successResponse(res, updatedColumn);
 }
 
 // ----------
 const deleteColumn = async (req, res) => {
-  const { id, boardId } = req.params;
+  const { id } = req.params;
 
-  //цей метод видалає дошку, за допомогою вказаних параметрів
-  const deletedColumn = await taskServices.column.delete({
-    _id: id,
-    boardId,
-  });
+  const deletedColumn = await taskServices.column.delete({ _id: id });
 
   if (!deletedColumn) {
     throw HttpError(404);
   }
 
-  res.success(deletedColumn);
+  successResponse(res, deletedColumn);
 }
 
 

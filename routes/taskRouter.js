@@ -11,7 +11,7 @@ taskRouter.patch('/boards/:id', taskCtrls.editBoard);
 taskRouter.delete('/boards/:id', taskCtrls.deleteBoard);
 
 //Шляхи до Column
-taskRouter.post('/columns/:boardId', taskCtrls.createColumn);
+taskRouter.post('/columns/', taskCtrls.createColumn);
 taskRouter.patch('/columns/:id', taskCtrls.editColumn);
 taskRouter.delete('/columns/:id', taskCtrls.deleteColumn);
 

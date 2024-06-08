@@ -9,7 +9,7 @@ const boardSchema = new mongoose.Schema({
 
     owner: {
         type: mongoose.Types.ObjectId,
-        ref: 'User', //посилання на модель користувача 'User'
+        ref: 'User',
     },
 
     icon: {

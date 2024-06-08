@@ -5,6 +5,7 @@ import HttpError from './helpers/httpError.js';
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
 import authMiddleware from './middlewares/authenticate.js';
+// import { handleContentType } from './middlewares/handleContentType.js';
 
 // import taskServices from './services/taskServices.js';
 
@@ -12,7 +13,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+// app.use(handleContentType); //можна додати сюди - буде більш глобально.
 app.use('/api/users', userRouter);
 app.use('/api/tasks', authMiddleware, taskRouter);
 

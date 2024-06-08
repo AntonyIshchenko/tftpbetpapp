@@ -1,11 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import HttpError from './helpers/httpError.js';
-
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
 import authMiddleware from './middlewares/authenticate.js';
-import jsendMiddleware from './helpers/jsendMiddleware.js';
 
 // import taskServices from './services/taskServices.js';
 
@@ -15,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/users', userRouter);
-app.use('/api', jsendMiddleware, authMiddleware, taskRouter);
+app.use('/api', authMiddleware, taskRouter);
 
 // app.get('/api/test', async (req, res, next) => {
 //   try {

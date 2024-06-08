@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+const queryProjection = '-createdAt -updatedAt';
+
 const taskSchema = new mongoose.Schema(
   {
     //назва завдання
@@ -40,8 +42,28 @@ const taskSchema = new mongoose.Schema(
      },*/
   },
   //створення та оновлення таски
-  { timestamps: true, versionKey: false } // залишаємо ?
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        delete ret._id;
+
+        queryProjection.split(' ').forEach(field => {
+          if (field.length > 0 && field[0] === '-') {
+            delete ret[field.slice(1)];
+          }
+        });
+      },
+    },
+    toObject: { virtuals: true },
+  }
 );
+
+taskSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
 
 const Task = mongoose.model('Task', taskSchema);
 export default Task;

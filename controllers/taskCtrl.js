@@ -2,10 +2,9 @@ import HttpError from "../helpers/httpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
 import taskServices from "../services/taskServices.js";
 
-const success = (data, statusCode = 200) => ({
+const success = data => ({
   status: 'success',
-  data,
-  statusCode
+  data
 });
 
 // ------------------------ Контролери для Board
@@ -13,7 +12,7 @@ const getAllBoards = async (req, res) => {
   const userId = req.user.id;
   const board = await taskServices.board.getAll(userId);
 
-  res.status(200).json(success(board));
+  res.json(success(board));
 }
 
 const getOneBoard = async (req, res) => {
@@ -21,10 +20,10 @@ const getOneBoard = async (req, res) => {
   const board = await taskServices.board.getinfo({ _id: id });
 
   if (!board) {
-    throw HttpError(404);
+    throw HttpError(404, 'Board not found');
   }
 
-  res.status(200).json(success(board));
+  res.json(success(board));
 }
 
 const createBoard = async (req, res) => {
@@ -33,7 +32,7 @@ const createBoard = async (req, res) => {
     owner: req.user._id, // власник дошки
   });
 
-  res.status(200).json(success(board));
+  res.status(201).json(success(board));
 }
 
 const editBoard = async (req, res) => {
@@ -51,10 +50,10 @@ const editBoard = async (req, res) => {
   const updatedBoard = await taskServices.board.update(id, req.body, { new: true });
 
   if (!updatedBoard) {
-    throw HttpError(404);
+    throw HttpError(404, 'Board not found');
   }
 
-  res.status(200).json(success(updatedBoard));
+  res.json(success(updatedBoard));
 }
 
 const deleteBoard = async (req, res) => {
@@ -66,26 +65,22 @@ const deleteBoard = async (req, res) => {
   });
 
   if (!deletedBoard) {
-    throw HttpError(404);
+    throw HttpError(404, 'Board not found');
   }
 
-  res.status(200).json(success(deletedBoard));
+  res.json(success(deletedBoard));
 }
 
 // ------------------------ Контролери для Column! Done!
 const createColumn = async (req, res) => {
   const { boardId, name } = req.body;
 
-  if (!name) {
-    throw HttpError(400, 'Name is required');
-  }
-
   const newColumn = await taskServices.column.create({
     name,
     boardId,
   });
 
-  res.status(200).json(success(newColumn));
+  res.status(201).json(success(newColumn));
 }
 
 const editColumn = async (req, res) => {
@@ -98,10 +93,10 @@ const editColumn = async (req, res) => {
   const updatedColumn = await taskServices.column.update(id, req.body, { new: true });
 
   if (!updatedColumn) {
-    throw HttpError(404);
+    throw HttpError(404, 'Column not found');
   }
 
-  res.status(200).json(success(updatedColumn));
+  res.json(success(updatedColumn));
 }
 
 const deleteColumn = async (req, res) => {
@@ -110,28 +105,17 @@ const deleteColumn = async (req, res) => {
   const deletedColumn = await taskServices.column.delete({ _id: id });
 
   if (!deletedColumn) {
-    throw HttpError(404);
+    throw HttpError(404, 'Column not found');
   }
 
-  res.status(200).json(success(deletedColumn));
+  res.json(success(deletedColumn));
 }
 
 // ------------------------ Контролери для Task! Done!
 const createTask = async (req, res) => {
-  const { name, description, priority, columnId, boardId } = req.body;
-  //створюємо об'єкт з інф. завдання
-  const taskInfo = {
-    name,
-    description,
-    priority: priority || 'without',
-    deadline: '',
-    boardId,
-    columnId,
-  }
+  const newTask = await taskServices.task.create(req.body);
 
-  const newTask = await taskServices.task.create(taskInfo);
-
-  res.status(200).json(success(newTask));
+  res.status(201).json(success(newTask));
 }
 
 const editTask = async (req, res) => {
@@ -144,10 +128,10 @@ const editTask = async (req, res) => {
   const updatedTask = await taskServices.task.update({ _id: id }, req.body, { new: true });
 
   if (!updatedTask) {
-    throw HttpError(404);
+    throw HttpError(404, 'Task not found');
   }
 
-  res.status(200).json(success(updatedTask));
+  res.json(success(updatedTask));
 }
 
 const deleteTask = async (req, res) => {
@@ -155,10 +139,10 @@ const deleteTask = async (req, res) => {
   const deletedTask = await taskServices.task.delete({ _id: id });
 
   if (!deletedTask) {
-    throw HttpError(404);
+    throw HttpError(404, 'Task not found');
   }
 
-  res.status(200).json(success(deletedTask));
+  res.json(success(deletedTask));
 }
 
 export default {

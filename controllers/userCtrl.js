@@ -4,6 +4,8 @@ import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import * as fs from 'node:fs/promises';
+import path from 'node:path';
 
 const getUserResponseObject = user => {
   return {
@@ -73,7 +75,7 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(201).json({
+  res.status(200).json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
@@ -93,27 +95,9 @@ const logoutUser = async (req, res, next) => {
   res.sendStatus(204); // нічого не повертає, крім статусу
 };
 
-// Тема + Joi OK
-
-const modifyUserTheme = async (req, res, next) => {
-  const { id } = req.params;
-  const result = await changeUser({ _id: id }, req.body);
-  if (!result) {
-    throw HttpError(404, 'Not found');
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      theme: result.theme,
-    },
-  }); // повертає тему
-};
-
-// update + Joi OK
-
 const updateUser = async (req, res, next) => {
   const { id } = req.user;
-  const { name, email, password, avatar } = req.body;
+  const { name, email, password, theme } = req.body;
   const updates = {};
   if (name) {
     updates.name = name;
@@ -129,9 +113,18 @@ const updateUser = async (req, res, next) => {
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
-  if (avatar) {
-    updates.avatar = avatar;
+  if (req.file) {
+    await fs.unlink(req.file.path);
+    updates.avatar = req.file.path;
   }
+  if (theme) {
+    updates.theme = theme;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ message: 'No fields to update' });
+  }
+
   const updatedUser = await changeUser({ _id: id }, updates);
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
@@ -143,7 +136,6 @@ export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
-  modifyUserTheme: ctrlWrapper(modifyUserTheme),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
 };

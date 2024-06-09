@@ -10,13 +10,13 @@ const taskSchema = new mongoose.Schema(
     boardId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Board', // посилання на модель колонки 'Board'
+      ref: 'Board',
     },
     // ID колонки, до якої відноситься завдання
     columnId: {
       type: mongoose.Types.ObjectId,
       required: [true, 'Set columnId for Task'],
-      ref: 'Column', // посилання на модель колонки 'Column'
+      ref: 'Column',
     },
 
     description: {

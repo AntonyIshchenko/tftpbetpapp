@@ -1,104 +1,148 @@
 import HttpError from "../helpers/httpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
+import taskServices from "../services/taskServices.js";
 
-//Контролери для Дошки
+const success = data => ({
+  status: 'success',
+  data
+});
+
+// ------------------------ Контролери для Board
 const getAllBoards = async (req, res) => {
-  //отримуємо всі дошки, які знаходяться в нашій БД
-  const board = await Board.find({});
+  const userId = req.user.id;
+  const board = await taskServices.board.getAll(userId);
 
-  res.json(board);
+  res.json(success(board));
 }
 
 const getOneBoard = async (req, res) => {
   const { id } = req.params;
-  //цим методом шукаємо дошку, за вказаним ідентифікатором
-  const board = await Board.findOne({ _id: id });
+  const board = await taskServices.board.getinfo({ _id: id });
 
   if (!board) {
-    throw HttpError(404);
+    throw HttpError(404, 'Board not found');
   }
 
-  res.json(board);
+  res.json(success(board));
 }
 
 const createBoard = async (req, res) => {
-  // за допомогою цього методу, створюємо нову дошку
-  const board = await Board.create({
-    ...req.body, // копіюємо всі дані з тіла запиту,
-    owner: req.user._id, // додаємо власника дошки, який зберігається в об'єкті req.user
+  const board = await taskServices.board.create({
+    ...req.body,
+    owner: req.user._id, // власник дошки
   });
 
-  res.status(200).json(board);
+  res.status(201).json(success(board));
 }
 
 const editBoard = async (req, res) => {
-  const { id } = req.params;
-  //шукаємо дошку за ID і власником (owner) з використанням findOne.
-  const board = await Board.findOne({ _id: id, owner: req.user.user.id });
+  //шукаємо дошку за ID і власником (owner) з використанням findOne. Обговоримо цю перевірку, пізніше
+  /*const board = await taskServices.board.getData({ _id: id, owner: req.user.id });
 
   if (!board) {
     throw HttpError(404);
-  }
-  //використовуємо параметр findByIdAndUpdate, для оновлення дошки, за ID, та за допомогою new: true, повертаємо оновлену дошку
-  const updateBoard = await Board.findByIdAndUpdate(id, req.body, { new: true });
+  }*/
 
-  if (!updateBoard) {
-    throw HttpError(404);
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
+  const updatedBoard = await taskServices.board.update(id, req.body, { new: true });
+
+  if (!updatedBoard) {
+    throw HttpError(404, 'Board not found');
   }
 
-  res.status(200).json(updateBoard);
+  res.json(success(updatedBoard));
 }
 
 const deleteBoard = async (req, res) => {
   const { id } = req.params;
 
-  //шукаємо дошку, за вказаним ідентифікатором та перевіряємо, чи вона належить саме тому користувачеві, який виконав запит
-  const board = await Board.findOneAndDelete({
+  const deletedBoard = await taskServices.board.delete({
     _id: id,
     owner: req.user.id,
   });
 
-  if (!board) {
-    throw HttpError(404);
+  if (!deletedBoard) {
+    throw HttpError(404, 'Board not found');
   }
 
-  res.status(200).json(board);
+  res.json(success(deletedBoard));
 }
 
-//Контролери для Колонки
-const createColumn = async (req, res, next) => {
-  //отримуємо значення властивості name з тіла запиту,
-  const { name } = req.body;
-  //отримуємо значення властивості boardId з параметрів запиту,
-  const { boardId } = req.params;
+// ------------------------ Контролери для Column! Done!
+const createColumn = async (req, res) => {
+  const { boardId, name } = req.body;
 
-  if (!name) {
-    throw HttpError(400, 'Name is required');
-  }
-
-  // Створення нової колонки
-  const newColumn = await Column.create({
+  const newColumn = await taskServices.column.create({
     name,
     boardId,
   });
 
-  res.status(200).json(newColumn);
+  res.status(201).json(success(newColumn));
 }
 
-const editColumn = async (req, res, next) => {
+const editColumn = async (req, res) => {
+
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
+
+  const updatedColumn = await taskServices.column.update(id, req.body, { new: true });
+
+  if (!updatedColumn) {
+    throw HttpError(404, 'Column not found');
+  }
+
+  res.json(success(updatedColumn));
 }
 
-const deleteColumn = async (req, res, next) => {
+const deleteColumn = async (req, res) => {
+  const { id } = req.params;
+
+  const deletedColumn = await taskServices.column.delete({ _id: id });
+
+  if (!deletedColumn) {
+    throw HttpError(404, 'Column not found');
+  }
+
+  res.json(success(deletedColumn));
 }
 
-//Контролери для Завдань
-const createTask = async (req, res, next) => {
+// ------------------------ Контролери для Task! Done!
+const createTask = async (req, res) => {
+  const newTask = await taskServices.task.create(req.body);
+
+  res.status(201).json(success(newTask));
 }
 
-const editTask = async (req, res, next) => {
+const editTask = async (req, res) => {
+
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
+
+  const updatedTask = await taskServices.task.update({ _id: id }, req.body, { new: true });
+
+  if (!updatedTask) {
+    throw HttpError(404, 'Task not found');
+  }
+
+  res.json(success(updatedTask));
 }
 
-const deleteTask = async (req, res, next) => {
+const deleteTask = async (req, res) => {
+  const { id } = req.params;
+  const deletedTask = await taskServices.task.delete({ _id: id });
+
+  if (!deletedTask) {
+    throw HttpError(404, 'Task not found');
+  }
+
+  res.json(success(deletedTask));
 }
 
 export default {
@@ -116,6 +160,3 @@ export default {
   editTask: ctrlWrapper(editTask),
   deleteTask: ctrlWrapper(deleteTask),
 }
-
-
-

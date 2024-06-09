@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import * as fs from 'node:fs/promises';
-import path from 'node:path';
+import cloudinary from '../middlewares/cloudinaryConfig.js';
 
 const getUserResponseObject = user => {
   return {
@@ -17,7 +17,6 @@ const getUserResponseObject = user => {
   };
 };
 
-// Register + Joi OK
 const registerUser = async (req, res, next) => {
   const { name, email, password, theme } = req.body;
   const emailInLowerCase = email.toLowerCase();
@@ -58,8 +57,6 @@ const getCurrentUser = (req, res, next) => {
   });
 };
 
-// Login + Joi OK
-
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   const emailInLowerCase = email.toLowerCase();
@@ -81,10 +78,8 @@ const loginUser = async (req, res, next) => {
       user: getUserResponseObject(existUser),
       token: token,
     },
-  }); //  Все, крім пароля
+  });
 };
-
-// Логаут ОК
 
 const logoutUser = async (req, res, next) => {
   const { id } = req.user;
@@ -92,7 +87,7 @@ const logoutUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.sendStatus(204); // нічого не повертає, крім статусу
+  res.sendStatus(204);
 };
 
 const updateUser = async (req, res, next) => {
@@ -113,9 +108,20 @@ const updateUser = async (req, res, next) => {
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
+
   if (req.file) {
+    const user = await findUser({ _id: id });
+    if (user.avatarPublicId) {
+      await cloudinary.uploader.destroy(user.avatarPublicId);
+    }
+    const result = req.cloudinaryResult;
     await fs.unlink(req.file.path);
-    updates.avatar = req.file.path;
+    updates.avatar = result.secure_url;
+    updates.avatar = result.secure_url;
+    updates.avatarPublicId = result.public_id;
+  }
+  if (theme) {
+    updates.theme = theme;
   }
   if (theme) {
     updates.theme = theme;

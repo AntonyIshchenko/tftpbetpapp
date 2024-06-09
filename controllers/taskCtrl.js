@@ -2,16 +2,18 @@ import HttpError from "../helpers/httpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
 import taskServices from "../services/taskServices.js";
 
-const successResponse = (res, data, statusCode = 200) => {
-  res.status(statusCode).json({ status: 'success', data });
-};
+const success = (data, statusCode = 200) => ({
+  status: 'success',
+  data,
+  statusCode
+});
 
 // ------------------------ Контролери для Board
 const getAllBoards = async (req, res) => {
   const userId = req.user.id;
   const board = await taskServices.board.getAll(userId);
 
-  successResponse(res, board);
+  res.status(200).json(success(board));
 }
 
 const getOneBoard = async (req, res) => {
@@ -22,7 +24,7 @@ const getOneBoard = async (req, res) => {
     throw HttpError(404);
   }
 
-  successResponse(res, board);
+  res.status(200).json(success(board));
 }
 
 const createBoard = async (req, res) => {
@@ -31,7 +33,7 @@ const createBoard = async (req, res) => {
     owner: req.user._id, // власник дошки
   });
 
-  successResponse(res, board);
+  res.status(200).json(success(board));
 }
 
 const editBoard = async (req, res) => {
@@ -52,7 +54,7 @@ const editBoard = async (req, res) => {
     throw HttpError(404);
   }
 
-  successResponse(res, updatedBoard);
+  res.status(200).json(success(updatedBoard));
 }
 
 const deleteBoard = async (req, res) => {
@@ -67,10 +69,10 @@ const deleteBoard = async (req, res) => {
     throw HttpError(404);
   }
 
-  successResponse(res, deletedBoard);
+  res.status(200).json(success(deletedBoard));
 }
 
-// ------------------------ Контролери для Колонки! Done!
+// ------------------------ Контролери для Column! Done!
 const createColumn = async (req, res) => {
   const { boardId, name } = req.body;
 
@@ -78,16 +80,14 @@ const createColumn = async (req, res) => {
     throw HttpError(400, 'Name is required');
   }
 
-  // Створення нової колонки за допомогою заданих параметрів
   const newColumn = await taskServices.column.create({
     name,
     boardId,
   });
 
-  successResponse(res, newColumn);
+  res.status(200).json(success(newColumn));
 }
 
-// ----------
 const editColumn = async (req, res) => {
 
   if (Object.keys(req.body).length === 0)
@@ -101,10 +101,9 @@ const editColumn = async (req, res) => {
     throw HttpError(404);
   }
 
-  successResponse(res, updatedColumn);
+  res.status(200).json(success(updatedColumn));
 }
 
-// ----------
 const deleteColumn = async (req, res) => {
   const { id } = req.params;
 
@@ -114,17 +113,12 @@ const deleteColumn = async (req, res) => {
     throw HttpError(404);
   }
 
-  successResponse(res, deletedColumn);
+  res.status(200).json(success(deletedColumn));
 }
 
-
-// ------------------------ Контролери для Завдань! Done!
+// ------------------------ Контролери для Task! Done!
 const createTask = async (req, res) => {
-  //отримуємо дані про завдання з тіла запиту
-  const { name, description, priority } = req.body;
-  //отримуємо ID колонки та дошки
-  const { columnId, boardId } = req.params;
-
+  const { name, description, priority, columnId, boardId } = req.body;
   //створюємо об'єкт з інф. завдання
   const taskInfo = {
     name,
@@ -134,46 +128,37 @@ const createTask = async (req, res) => {
     boardId,
     columnId,
   }
-  //за допомогою цього метода, створюємо завдання
+
   const newTask = await taskServices.task.create(taskInfo);
 
-  res.success(newTask);
+  res.status(200).json(success(newTask));
 }
 
-// ----------
 const editTask = async (req, res) => {
-  //отримуємо ID колонки та дошки
-  const { columnId, boardId, id } = req.params;
 
-  //за допомогою метода, оновлюємо за вказаними параметрами
-  const updatedTask = await taskServices.task.update(
-    { _id: id, boardId, columnId },
-    req.body,
-    { new: true }
-  );
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { id } = req.params;
+
+  const updatedTask = await taskServices.task.update({ _id: id }, req.body, { new: true });
 
   if (!updatedTask) {
     throw HttpError(404);
   }
 
-  res.success(updatedTask);
+  res.status(200).json(success(updatedTask));
 }
 
-// ----------
 const deleteTask = async (req, res) => {
-  //отримуємо ID колонки, дошки та завдання
-  const { columnId, boardId, id } = req.params;
-
-  //видалаємо за вказаними умовами, методом findOneAndDelete
-  const deletedTask = await taskServices.task.delete({
-    _id: id, boardId, columnId,
-  });
+  const { id } = req.params;
+  const deletedTask = await taskServices.task.delete({ _id: id });
 
   if (!deletedTask) {
     throw HttpError(404);
   }
 
-  res.success(deletedTask);
+  res.status(200).json(success(deletedTask));
 }
 
 export default {

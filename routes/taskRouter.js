@@ -16,8 +16,8 @@ taskRouter.patch('/columns/:id', taskCtrls.editColumn);
 taskRouter.delete('/columns/:id', taskCtrls.deleteColumn);
 
 //Шляхи до Task
-taskRouter.post('/tasks/:boardId/:columnId', taskCtrls.createTask);
-taskRouter.patch('/tasks/:boardId/:columnId/:id', taskCtrls.editTask);
-taskRouter.delete('/tasks/:boardId/:columnId/:id', taskCtrls.deleteTask);
+taskRouter.post('/tasks/', taskCtrls.createTask);
+taskRouter.patch('/tasks/:id', taskCtrls.editTask);
+taskRouter.delete('/tasks/:id', taskCtrls.deleteTask);
 
 export default taskRouter;

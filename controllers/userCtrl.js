@@ -50,7 +50,7 @@ const registerUser = async (req, res, next) => {
 
 const getCurrentUser = (req, res, next) => {
   const userResponse = getUserResponseObject(req.user);
-  res.status(201).json({
+  res.json({
     status: 'success',
     data: {
       user: userResponse,
@@ -75,7 +75,7 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(200).json({
+  res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
@@ -92,7 +92,10 @@ const logoutUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.sendStatus(204); // нічого не повертає, крім статусу
+  res.json({
+    status: 'success',
+    data: null,
+  });
 };
 
 const updateUser = async (req, res, next) => {
@@ -129,7 +132,12 @@ const updateUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.status(200).json(getUserResponseObject(updatedUser));
+  res.json({
+    status: 'success',
+    data: {
+      user: getUserResponseObject(existUser),
+    },
+  });
 };
 
 export default {

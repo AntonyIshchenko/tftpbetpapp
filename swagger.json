@@ -401,7 +401,7 @@
         }
       }
     },
-    "/boards/:id": {
+    "/boards/{id}": {
       "get": {
         "tags": ["Board"],
         "summary": "Get user board data",
@@ -660,7 +660,7 @@
         }
       }
     },
-    "/columns/:id": {
+    "/columns/{id}": {
       "patch": {
         "tags": ["Column"],
         "summary": "update column",
@@ -861,7 +861,7 @@
         }
       }
     },
-    "/tasks/:id": {
+    "/tasks/{id}": {
       "patch": {
         "tags": ["Task"],
         "summary": "update task",

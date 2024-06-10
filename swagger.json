@@ -1,0 +1,1745 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "version": "1.0.1",
+    "title": "Task-Pro App API documentation",
+    "description": "Shows how to use the Task-Pro App API",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "consumes": ["application/json", "multipart/form-data"],
+  "produces": ["application/json"],
+  "servers": [
+    { "url": "https://task-pro-app-0x3n.onrender.com/api" },
+    { "url": "http://localhost:8000/api" }
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "description": "Authorization and user endpoints"
+    },
+    {
+      "name": "Board",
+      "description": "User boards endpoints"
+    },
+    {
+      "name": "Column",
+      "description": "Board columns endpoints"
+    },
+    {
+      "name": "Task",
+      "description": "Board tasks endpoints"
+    }
+  ],
+
+  "paths": {
+    "/users/register": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register new user",
+        "parameters": [],
+        "requestBody": {
+          "description": "Registration object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterLoginUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Provided email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error409Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Login user",
+        "parameters": [],
+        "requestBody": {
+          "description": "Login object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterLoginUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email/password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/logout": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Logout user",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutUserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/current": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user data",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/update": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update one or more fields of user",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Update object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserMFDRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Provided email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error409Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/boards": {
+      "post": {
+        "tags": ["Board"],
+        "summary": "Create new board",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Creation object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBoardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Board"],
+        "summary": "Get all user boards",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllBoardsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/:id": {
+      "get": {
+        "tags": ["Board"],
+        "summary": "Get user board data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "66621f23aa779d7c5815ac64"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBoardDataResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Board not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Board"],
+        "summary": "update board",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "66621f23aa779d7c5815ac64"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Update object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBoardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Board not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Board"],
+        "summary": "Delete user board data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "66621f23aa779d7c5815ac64"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBoardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Board not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/columns": {
+      "post": {
+        "tags": ["Column"],
+        "summary": "Create new column",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Creation object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateColumnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateColumnResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/:id": {
+      "patch": {
+        "tags": ["Column"],
+        "summary": "update column",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "6662216a26517c92994797e8"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Update object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateColumnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateColumnResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Column not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Column"],
+        "summary": "Delete column",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "6662216a26517c92994797e8"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateColumnResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Column not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/tasks": {
+      "post": {
+        "tags": ["Task"],
+        "summary": "Create new task",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Creation object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/:id": {
+      "patch": {
+        "tags": ["Task"],
+        "summary": "update task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "666221ad79bd70d73642161c"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Update object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Task"],
+        "summary": "Delete task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "666221ad79bd70d73642161c"
+            }
+          }
+        ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTaskResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token (not authorized)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error404Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "schemas": {
+      "RegisterUserRequest": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User name",
+            "example": "Username"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "qwerty123"
+          },
+          "theme": {
+            "type": "string",
+            "description": "User theme",
+            "example": "light"
+          }
+        }
+      },
+      "LoginUserRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "qwerty123"
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User name",
+            "example": "Username"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "qwerty123"
+          },
+          "theme": {
+            "type": "string",
+            "description": "User theme",
+            "example": "light"
+          }
+        }
+      },
+      "UpdateUserMFDRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User name",
+            "example": "Username"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "qwerty123"
+          },
+          "theme": {
+            "type": "string",
+            "description": "User theme",
+            "example": "light"
+          },
+          "avatar": {
+            "type": "binary",
+            "description": "User avatar"
+          }
+        }
+      },
+      "RegisterLoginUserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "User id",
+                    "example": "66616e858ad8f8d588133f6b"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User name",
+                    "example": "user name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "User email",
+                    "format": "email"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "description": "User theme",
+                    "example": "light"
+                  },
+                  "avatar": {
+                    "type": "string",
+                    "description": "link to user avatar",
+                    "example": "www..."
+                  }
+                }
+              },
+              "token": {
+                "type": "string",
+                "description": "User access token",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+              },
+              "refreshToken": {
+                "type": "string",
+                "description": "User refresh token",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+              }
+            }
+          }
+        }
+      },
+      "LogoutUserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "null",
+            "description": "returned data",
+            "example": null
+          }
+        }
+      },
+      "CurrentUserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "User id",
+                    "example": "66616e858ad8f8d588133f6b"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User name",
+                    "example": "user name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "User email",
+                    "format": "email"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "description": "User theme",
+                    "example": "light"
+                  },
+                  "avatar": {
+                    "type": "string",
+                    "description": "link to user avatar",
+                    "example": "www..."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "CreateBoardRequest": {
+        "type": "object",
+        "required": ["name", "icon"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Board name",
+            "example": "My project"
+          },
+          "icon": {
+            "type": "string",
+            "description": "frontend icon id",
+            "example": "icon-cube"
+          },
+          "background": {
+            "type": "string",
+            "description": "Board background picture name or none",
+            "example": "moon"
+          }
+        }
+      },
+      "CreateBoardResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "board": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Board id",
+                    "example": "66616e858ad8f8d588133f6b"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Board name",
+                    "example": "To do"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "description": "frontend icon id",
+                    "example": "icon-cube"
+                  },
+                  "background": {
+                    "type": "string",
+                    "description": "Board background picture name or none",
+                    "example": "moon"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "GetAllBoardsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "boards": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Board id",
+                      "example": "66616e858ad8f8d588133f6b"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Board name",
+                      "example": "My project"
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "frontend icon id",
+                      "example": "icon-cube"
+                    },
+                    "background": {
+                      "type": "string",
+                      "description": "Board background picture name or none",
+                      "example": "moon"
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "id": "66621f08aa779d7c5815ac62",
+                    "name": "My project 1",
+                    "icon": "icon-cube",
+                    "background": "moon"
+                  },
+                  {
+                    "id": "66621f23aa779d7c5815ac64",
+                    "name": "My project 2",
+                    "icon": "icon-star",
+                    "background": ""
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "GetBoardDataResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "board": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Board id",
+                    "example": "66616e858ad8f8d588133f6b"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Board name",
+                    "example": "To do"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "description": "frontend icon id",
+                    "example": "icon-cube"
+                  },
+                  "background": {
+                    "type": "string",
+                    "description": "Board background picture name or none",
+                    "example": "moon"
+                  }
+                }
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Column id",
+                      "example": "6662216a26517c92994797e8"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Column name",
+                      "example": "To do"
+                    },
+                    "boardId": {
+                      "type": "string",
+                      "description": "Column id",
+                      "example": "66616e858ad8f8d588133f6b"
+                    }
+                  }
+                },
+                "example": [
+                  { "id": "6662216a26517c92994797e8", "name": "To do" },
+                  { "id": "6662215770c47070700e310d", "name": "In progress" }
+                ]
+              },
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Task id",
+                      "example": "6662219edafe2d4bcaee4506"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Task name",
+                      "example": "Write project schema"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Task description",
+                      "example": "Write project schema by sections..."
+                    },
+                    "columnId": {
+                      "type": "string",
+                      "description": "Column id",
+                      "example": "6662216a26517c92994797e8"
+                    },
+                    "priority": {
+                      "type": "string",
+                      "description": "Task priority",
+                      "example": "medium"
+                    },
+                    "deadline": {
+                      "type": "string",
+                      "description": "Task deadline date",
+                      "example": "2024-06-09"
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "id": "6662219edafe2d4bcaee4506",
+                    "name": "Write project schema",
+                    "description": "Write project schema by sections...",
+                    "columnId": "6662216a26517c92994797e8",
+                    "priority": "medium",
+                    "deadline": "2024-06-09"
+                  },
+                  {
+                    "id": "666221ad79bd70d73642161c",
+                    "name": "Create diagram",
+                    "description": "Create project functional diagram...",
+                    "columnId": "6662216a26517c92994797e8",
+                    "priority": "without",
+                    "deadline": "2024-06-10"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "UpdateBoardRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Board name",
+            "example": "My project"
+          },
+          "icon": {
+            "type": "string",
+            "description": "frontend icon id",
+            "example": "icon-cube"
+          },
+          "background": {
+            "type": "string",
+            "description": "Board background picture name or none",
+            "example": "moon"
+          }
+        }
+      },
+
+      "CreateColumnRequest": {
+        "type": "object",
+        "required": ["name", "boardId"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Column name",
+            "example": "To do"
+          },
+          "boardId": {
+            "type": "string",
+            "description": "Board id",
+            "example": "66616e858ad8f8d588133f6b"
+          }
+        }
+      },
+      "CreateColumnResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "column": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Column id",
+                    "example": "6662216a26517c92994797e8"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Column name",
+                    "example": "To do"
+                  },
+                  "boardId": {
+                    "type": "string",
+                    "description": "Board id",
+                    "example": "66616e858ad8f8d588133f6b"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpdateColumnRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Column name",
+            "example": "To do"
+          }
+        }
+      },
+
+      "CreateTaskRequest": {
+        "type": "object",
+        "required": ["name", "columnId", "boardId", "deadline"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Task name",
+            "example": "Write project schema"
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description",
+            "example": "Write project schema by sections..."
+          },
+          "boardId": {
+            "type": "string",
+            "description": "Board id",
+            "example": "66616e858ad8f8d588133f6b"
+          },
+          "columnId": {
+            "type": "string",
+            "description": "Column id",
+            "example": "6662216a26517c92994797e8"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Task priority",
+            "example": "medium"
+          },
+          "deadline": {
+            "type": "string",
+            "description": "Task deadline date",
+            "example": "2024-06-09"
+          }
+        }
+      },
+      "CreateTaskResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Task id",
+                    "example": "6662219edafe2d4bcaee4506"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Task name",
+                    "example": "Write project schema"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Task description",
+                    "example": "Write project schema by sections..."
+                  },
+                  "columnId": {
+                    "type": "string",
+                    "description": "Column id",
+                    "example": "6662216a26517c92994797e8"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "description": "Task priority",
+                    "example": "medium"
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "description": "Task deadline date",
+                    "example": "2024-06-09"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpdateTaskRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Task name",
+            "example": "Write project schema"
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description",
+            "example": "Write project schema by sections..."
+          },
+          "columnId": {
+            "type": "string",
+            "description": "Column id",
+            "example": "6662216a26517c92994797e8"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Task priority",
+            "example": "medium"
+          },
+          "deadline": {
+            "type": "string",
+            "description": "Task deadline date",
+            "example": "2024-06-09"
+          }
+        }
+      },
+
+      "Error400Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Validation Error message"
+          }
+        }
+      },
+      "Error401Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Not authorized"
+          }
+        }
+      },
+      "Error404Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Not found"
+          }
+        }
+      },
+      "Error409Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Email in use"
+          }
+        }
+      },
+      "Error500Response": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

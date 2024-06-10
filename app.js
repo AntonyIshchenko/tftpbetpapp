@@ -5,7 +5,6 @@ import swaggerUi from 'swagger-ui-express';
 
 // import swaggerDocument from './swagger.json';
 import HttpError from './helpers/httpError.js';
-
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
 import authMiddleware from './middlewares/authenticate.js';

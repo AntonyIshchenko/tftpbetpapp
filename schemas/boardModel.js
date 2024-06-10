@@ -10,22 +10,16 @@ const boardSchema = new mongoose.Schema(
       required: [true, 'Set name for Board'],
     },
     owner: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
     },
     icon: {
       type: String,
       required: [true, 'Set icon for board'],
     },
     background: {
-      type: {
-        type: String,
-        // required: true,
-      },
-      url: {
-        type: String,
-        // required: true,
-      },
+      type: String,
+      default: null,
     },
   },
   {

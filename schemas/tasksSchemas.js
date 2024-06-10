@@ -66,7 +66,9 @@ export const createTaskSchema = Joi.object({
     priority: Joi.string().valid('without', 'low', 'medium', 'high').messages({
         'any.only': 'Priority must be one of "without", "low", "medium", "high"'
     }),
-    deadline: Joi.string().allow('').required().pattern(deadlineRegex)
+    deadline: Joi.string().allow('').required().pattern(deadlineRegex).messages({
+        'string.pattern.base': 'Deadline must be in the format YYYY- MM - DD, e.g., "2024-12-31"',
+    })
 });
 
 export const updateTaskSchema = Joi.object({

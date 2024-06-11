@@ -135,7 +135,7 @@ const updateUser = async (req, res, next) => {
   res.json({
     status: 'success',
     data: {
-      user: getUserResponseObject(existUser),
+      user: getUserResponseObject(updatedUser),
     },
   });
 };

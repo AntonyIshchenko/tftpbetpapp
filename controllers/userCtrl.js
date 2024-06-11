@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import * as fs from 'node:fs/promises';
-import cloudinary from '../middlewares/cloudinaryConfig.js';
+import cloudinary from '../helpers/cloudinaryConfig.js';
 
 const getUserResponseObject = user => {
   return {
@@ -110,23 +110,21 @@ const updateUser = async (req, res, next) => {
   }
 
   if (req.file) {
-    const user = await findUser({ _id: id });
-    if (user.avatarPublicId) {
-      await cloudinary.uploader.destroy(user.avatarPublicId);
-    }
-    const result = req.cloudinaryResult;
-    await fs.unlink(req.file.path);
-    updates.avatar = result.secure_url;
-    updates.avatar = result.secure_url;
-    updates.avatarPublicId = result.public_id;
+    await cloudinary.uploader
+      .upload(req.file.path, {
+        transformation: [{ width: 200, height: 200, crop: 'fill' }],
+        folder: 'avatars',
+      })
+      .then(async result => {
+        updates.avatar = result.secure_url;
+        updates.avatarPublicId = result.public_id;
+        await cloudinary.uploader.destroy(req.user.avatarPublicId);
+        await fs.unlink(req.file.path);
+      });
   }
   if (theme) {
     updates.theme = theme;
   }
-  if (theme) {
-    updates.theme = theme;
-  }
-
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ message: 'No fields to update' });
   }

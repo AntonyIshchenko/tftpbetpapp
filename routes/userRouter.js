@@ -8,7 +8,6 @@ import {
 import validateBody from '../helpers/validateBody.js';
 import authMiddleware from '../middlewares/authenticate.js';
 import { handleContentType } from '../middlewares/handleContentType.js';
-import handleAvatarResize from '../middlewares/handleAvatarResize.js';
 
 const userRouter = express.Router();
 
@@ -24,7 +23,6 @@ userRouter.patch(
   '/update',
   authMiddleware,
   handleContentType,
-  handleAvatarResize,
   validateBody(updateUserSchema),
   userCtrl.updateUser
 );

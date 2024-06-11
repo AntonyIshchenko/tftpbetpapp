@@ -35,7 +35,7 @@ const userSchema = new Schema(
       enum: ['light', 'dark', 'violet'],
       default: 'light',
     },
-    avatarPublicId: { type: String, default: null }, // треба для видалення старої ави з клаудінарі
+    avatarPublicId: { type: String, default: null },
   },
   { versionKey: false }
 );

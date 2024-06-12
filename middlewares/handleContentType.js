@@ -2,14 +2,6 @@ import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import HttpError from '../helpers/httpError.js';
-import * as fs from 'node:fs/promises';
-import sizeOf from 'image-size';
-
-const checkImageSize = async filePath => {
-  const data = await fs.readFile(filePath);
-  const dimensions = sizeOf(data);
-  return dimensions;
-};
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -29,13 +21,7 @@ const limits = {
 };
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/jpg',
-    'image/jpg',
-  ];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -68,19 +54,7 @@ export const handleContentType = (req, res, next) => {
         return next(HttpError(400, 'No file uploaded.'));
       }
 
-      try {
-        const dimensions = await checkImageSize(req.file.path);
-        if (!dimensions || dimensions.width < 200 || dimensions.height < 200) {
-          await fs.unlink(req.file.path); // видалення з тмп.
-          return next(
-            HttpError(400, 'Image size too small. Minimum size is 200x200.')
-          );
-        }
-        next();
-      } catch (error) {
-        await fs.unlink(req.file.path); // видалення у випадку ерора
-        return next(HttpError(500, 'Error processing image.'));
-      }
+      next();
     });
   } else {
     next();

@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
+import sizeOf from 'image-size';
 
 const getUserResponseObject = user => {
   return {
@@ -15,6 +16,11 @@ const getUserResponseObject = user => {
     theme: user.theme,
     avatar: user.avatar,
   };
+};
+const checkImageSize = async filePath => {
+  const data = await fs.readFile(filePath);
+  const dimensions = sizeOf(data);
+  return dimensions;
 };
 
 const registerUser = async (req, res, next) => {
@@ -110,17 +116,31 @@ const updateUser = async (req, res, next) => {
   }
 
   if (req.file) {
-    await cloudinary.uploader
-      .upload(req.file.path, {
-        transformation: [{ width: 200, height: 200, crop: 'fill' }],
-        folder: 'avatars',
-      })
-      .then(async result => {
-        updates.avatar = result.secure_url;
-        updates.avatarPublicId = result.public_id;
+    const dimensions = await checkImageSize(req.file.path);
+    let uploadOptions = { folder: 'avatars' };
+
+    if (dimensions && dimensions.width >= 200 && dimensions.height >= 200) {
+      uploadOptions.transformation = [
+        { width: 200, height: 200, crop: 'fill' },
+      ];
+    }
+
+    try {
+      const result = await cloudinary.uploader.upload(
+        req.file.path,
+        uploadOptions
+      );
+      updates.avatar = result.secure_url;
+      updates.avatarPublicId = result.public_id;
+
+      if (req.user.avatarPublicId) {
         await cloudinary.uploader.destroy(req.user.avatarPublicId);
-        await fs.unlink(req.file.path);
-      });
+      }
+      await fs.unlink(req.file.path);
+    } catch (error) {
+      await fs.unlink(req.file.path);
+      throw HttpError(500, 'Error uploading image to Cloudinary.');
+    }
   }
   if (theme) {
     updates.theme = theme;

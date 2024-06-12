@@ -23,7 +23,14 @@ const validateDate = (fieldDate) => {
             return checker.message(`Date must be in the format YYYY-MM-DD`);
         }
 
-        const [month, day] = date.split('-').map(Number);
+        //Підхід 1. Розпарсив масив, залишаючи пустий рядок або змінну для year.
+        // const [, month, day] = date.split('-').map(Number);
+
+        //Підхід 2. Тут розпарсив масив, на рік - місяць - день
+        const dateParts = date.split('-');
+        //достукався до місяця, та року для перевірки
+        const month = Number(dateParts[1]);
+        const day = Number(dateParts[2]);
 
         if (month < 1 || month > 12) {
             return checker.message(`Month must be between 1 and 12`);

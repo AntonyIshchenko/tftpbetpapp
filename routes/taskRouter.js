@@ -9,40 +9,25 @@ import {
     updateTaskSchema
 } from '../schemas/tasksSchemas.js';
 import validateBody from '../helpers/validateBody.js';
+import validateId from '../middlewares/validateId.js';
 
 const taskRouter = express.Router();
 
 // Шляхи до Board
 taskRouter.get('/boards', taskCtrls.getAllBoards);
-taskRouter.get('/boards/:id', taskCtrls.getOneBoard);
-taskRouter.post('/boards',
-    validateBody(createBoardSchema),
-    taskCtrls.createBoard);
-taskRouter.patch('/boards/:id',
-    validateBody(updateBoardSchema),
-    taskCtrls.editBoard);
-taskRouter.delete('/boards/:id', taskCtrls.deleteBoard);
+taskRouter.post('/boards',  validateBody(createBoardSchema), taskCtrls.createBoard);
+taskRouter.get('/boards/:id', validateId, taskCtrls.getOneBoard);
+taskRouter.patch('/boards/:id', validateId,  validateBody(updateBoardSchema), taskCtrls.editBoard);
+taskRouter.delete('/boards/:id', validateId, taskCtrls.deleteBoard);
 
 //Шляхи до Column
-taskRouter.post(
-    '/columns/',
-    validateBody(createColumnSchema),
-    taskCtrls.createColumn);
-taskRouter.patch(
-    '/columns/:id',
-    validateBody(updateColumnSchema),
-    taskCtrls.editColumn);
-taskRouter.delete('/columns/:id', taskCtrls.deleteColumn);
+taskRouter.post('/columns', validateBody(createColumnSchema), taskCtrls.createColumn);
+taskRouter.patch('/columns/:id', validateId, validateBody(updateColumnSchema), taskCtrls.editColumn);
+taskRouter.delete('/columns/:id', validateId, taskCtrls.deleteColumn);
 
 //Шляхи до Task
-taskRouter.post(
-    '/tasks/',
-    validateBody(createTaskSchema),
-    taskCtrls.createTask);
-taskRouter.patch(
-    '/tasks/:id',
-    validateBody(updateTaskSchema),
-    taskCtrls.editTask);
-taskRouter.delete('/tasks/:id', taskCtrls.deleteTask);
+taskRouter.post('/tasks', validateBody(createTaskSchema), taskCtrls.createTask);
+taskRouter.patch('/tasks/:id', validateId, validateBody(updateTaskSchema), taskCtrls.editTask);
+taskRouter.delete('/tasks/:id', validateId, taskCtrls.deleteTask);
 
 export default taskRouter;

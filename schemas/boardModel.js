@@ -18,14 +18,8 @@ const boardSchema = new mongoose.Schema(
       required: [true, 'Set icon for board'],
     },
     background: {
-      type: {
-        type: String,
-        default: '',
-      },
-      url: {
-        type: String,
-        default: '',
-      },
+      type: String,
+      default: null,
     },
   },
   {

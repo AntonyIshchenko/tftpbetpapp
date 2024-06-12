@@ -35,6 +35,7 @@ const userSchema = new Schema(
       enum: ['light', 'dark', 'violet'],
       default: 'light',
     },
+    avatarPublicId: { type: String, default: null },
   },
   { versionKey: false }
 );

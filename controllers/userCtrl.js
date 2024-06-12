@@ -17,6 +17,7 @@ const getUserResponseObject = user => {
     avatar: user.avatar,
   };
 };
+
 const checkImageSize = async filePath => {
   const data = await fs.readFile(filePath);
   const dimensions = sizeOf(data);
@@ -55,7 +56,7 @@ const registerUser = async (req, res, next) => {
 
 const getCurrentUser = (req, res, next) => {
   const userResponse = getUserResponseObject(req.user);
-  res.status(201).json({
+  res.json({
     status: 'success',
     data: {
       user: userResponse,
@@ -78,7 +79,7 @@ const loginUser = async (req, res, next) => {
     expiresIn: '1h',
   });
   await changeUser({ email: emailInLowerCase }, { token });
-  res.status(200).json({
+  res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
@@ -93,16 +94,21 @@ const logoutUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.sendStatus(204);
+  res.json({
+    status: 'success',
+    data: null,
+  });
 };
 
 const updateUser = async (req, res, next) => {
   const { id } = req.user;
   const { name, email, password, theme } = req.body;
   const updates = {};
+  
   if (name) {
     updates.name = name;
   }
+  
   if (email) {
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
@@ -111,21 +117,26 @@ const updateUser = async (req, res, next) => {
     }
     updates.email = emailInLowerCase;
   }
+  
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
 
+  if (theme) {
+    updates.theme = theme;
+  }
+  
   if (req.file) {
-    const dimensions = await checkImageSize(req.file.path);
-    let uploadOptions = { folder: 'avatars' };
-
-    if (dimensions && dimensions.width >= 200 && dimensions.height >= 200) {
-      uploadOptions.transformation = [
-        { width: 200, height: 200, crop: 'fill' },
-      ];
-    }
-
     try {
+      const dimensions = await checkImageSize(req.file.path);
+      const uploadOptions = { folder: 'avatars' };
+
+      if (dimensions && dimensions.width >= 200 && dimensions.height >= 200) {
+        uploadOptions.transformation = [
+          { width: 200, height: 200, crop: 'fill' },
+        ];
+      }
+
       const result = await cloudinary.uploader.upload(
         req.file.path,
         uploadOptions
@@ -134,26 +145,33 @@ const updateUser = async (req, res, next) => {
       updates.avatarPublicId = result.public_id;
 
       if (req.user.avatarPublicId) {
-        await cloudinary.uploader.destroy(req.user.avatarPublicId);
+        try {
+          await cloudinary.uploader.destroy(req.user.avatarPublicId);
+        } catch (error) {
+          // we don't think that error should stop our flow 
+        }     
       }
       await fs.unlink(req.file.path);
     } catch (error) {
       await fs.unlink(req.file.path);
-      throw HttpError(500, 'Error uploading image to Cloudinary.');
+      throw HttpError(500, 'Error uploading image');
     }
   }
-  if (theme) {
-    updates.theme = theme;
-  }
+  
   if (Object.keys(updates).length === 0) {
-    return res.status(400).json({ message: 'No fields to update' });
+    throw HttpError(400, 'No fields to update');
   }
 
   const updatedUser = await changeUser({ _id: id }, updates);
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
-  res.status(200).json(getUserResponseObject(updatedUser));
+  res.json({
+    status: 'success',
+    data: {
+      user: getUserResponseObject(updatedUser),
+    },
+  });
 };
 
 export default {

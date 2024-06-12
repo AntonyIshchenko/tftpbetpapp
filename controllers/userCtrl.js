@@ -5,7 +5,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import * as fs from 'node:fs/promises';
-import path from 'node:path';
+import cloudinary from '../helpers/cloudinaryConfig.js';
+import sizeOf from 'image-size';
 
 const getUserResponseObject = user => {
   return {
@@ -17,7 +18,12 @@ const getUserResponseObject = user => {
   };
 };
 
-// Register + Joi OK
+const checkImageSize = async filePath => {
+  const data = await fs.readFile(filePath);
+  const dimensions = sizeOf(data);
+  return dimensions;
+};
+
 const registerUser = async (req, res, next) => {
   const { name, email, password, theme } = req.body;
   const emailInLowerCase = email.toLowerCase();
@@ -58,8 +64,6 @@ const getCurrentUser = (req, res, next) => {
   });
 };
 
-// Login + Joi OK
-
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   const emailInLowerCase = email.toLowerCase();
@@ -81,10 +85,8 @@ const loginUser = async (req, res, next) => {
       user: getUserResponseObject(existUser),
       token: token,
     },
-  }); //  Все, крім пароля
+  });
 };
-
-// Логаут ОК
 
 const logoutUser = async (req, res, next) => {
   const { id } = req.user;
@@ -102,9 +104,11 @@ const updateUser = async (req, res, next) => {
   const { id } = req.user;
   const { name, email, password, theme } = req.body;
   const updates = {};
+  
   if (name) {
     updates.name = name;
   }
+  
   if (email) {
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
@@ -113,19 +117,49 @@ const updateUser = async (req, res, next) => {
     }
     updates.email = emailInLowerCase;
   }
+  
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
-  if (req.file) {
-    await fs.unlink(req.file.path);
-    updates.avatar = req.file.path;
-  }
+
   if (theme) {
     updates.theme = theme;
   }
+  
+  if (req.file) {
+    try {
+      const dimensions = await checkImageSize(req.file.path);
+      const uploadOptions = { folder: 'avatars' };
 
+      if (dimensions && dimensions.width >= 200 && dimensions.height >= 200) {
+        uploadOptions.transformation = [
+          { width: 200, height: 200, crop: 'fill' },
+        ];
+      }
+
+      const result = await cloudinary.uploader.upload(
+        req.file.path,
+        uploadOptions
+      );
+      updates.avatar = result.secure_url;
+      updates.avatarPublicId = result.public_id;
+
+      if (req.user.avatarPublicId) {
+        try {
+          await cloudinary.uploader.destroy(req.user.avatarPublicId);
+        } catch (error) {
+          // we don't think that error should stop our flow 
+        }     
+      }
+      await fs.unlink(req.file.path);
+    } catch (error) {
+      await fs.unlink(req.file.path);
+      throw HttpError(500, 'Error uploading image');
+    }
+  }
+  
   if (Object.keys(updates).length === 0) {
-    return res.status(400).json({ message: 'No fields to update' });
+    throw HttpError(400, 'No fields to update');
   }
 
   const updatedUser = await changeUser({ _id: id }, updates);

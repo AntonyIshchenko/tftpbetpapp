@@ -13,36 +13,24 @@ const validateObjectId = (fieldName, error) => {
     });
 };
 
-const validateDate = (fieldDate) => {
-    return Joi.string().required().messages({
-        'any.required': `Field ${fieldDate} is required`,
-        'string.empty': `Field ${fieldDate} cannot be empty`,
-    }).custom((date, checker) => {
-        const deadlineRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!deadlineRegex.test(date)) {
-            return checker.message(`Date must be in the format YYYY-MM-DD`);
-        }
+const deadlineRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-        //Підхід 1. Розпарсив масив, залишаючи пустий рядок або змінну для year.
-        // const [, month, day] = date.split('-').map(Number);
+const validateDate = (date, checker) => {
+    const dateParts = date.split('-');
+    const month = Number(dateParts[1]);
+    const day = Number(dateParts[2]);
 
-        //Підхід 2. Тут розпарсив масив, на рік - місяць - день
-        const dateParts = date.split('-');
-        //достукався до місяця, та року для перевірки
-        const month = Number(dateParts[1]);
-        const day = Number(dateParts[2]);
+    if (month < 1 || month > 12) {
+        return checker.message(`Month must be between 1 and 12`);
+    }
 
-        if (month < 1 || month > 12) {
-            return checker.message(`Month must be between 1 and 12`);
-        }
+    if (day < 1 || day > 31) {
+        return checker.message(`Day must be between 1 and 31`)
+    }
 
-        if (day < 1 || day > 31) {
-            return checker.message(`Day must be between 1 and 31`)
-        }
-
-        return date;
-    });
+    return date;
 };
+
 
 
 // ------------ Board Joi Schema
@@ -91,14 +79,14 @@ export const createTaskSchema = Joi.object({
     priority: Joi.string().valid('without', 'low', 'medium', 'high').messages({
         'any.only': 'Priority must be one of "without", "low", "medium", "high"'
     }),
-    deadline: validateDate('deadline', 'Invalid date format or values out of range')
+    deadline: Joi.string().required().pattern(deadlineRegex).message('Date must be in the format YYYY-MM-DD').custom(validateDate)
 });
 
 export const updateTaskSchema = Joi.object({
     name: Joi.string().trim(),
     description: Joi.string().trim().allow(''),
     priority: Joi.string().valid('without', 'low', 'medium', 'high'),
-    deadline: validateDate('deadline', 'Invalid date format or values out of range')
+    deadline: Joi.string().pattern(deadlineRegex).message('Date must be in the format YYYY-MM-DD').custom(validateDate)
 });
 
 

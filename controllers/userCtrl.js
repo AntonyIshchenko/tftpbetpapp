@@ -48,14 +48,14 @@ const registerUser = async (req, res, next) => {
   });
 
   const accessToken = jwt.sign(
-    { sessionId: newSession._id },
+    { userId: user._id, sessionId: newSession._id },
     process.env.JWT_ACCESS_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
     }
   );
   const refreshToken = jwt.sign(
-    { sessionId: newSession._id },
+    { userId: user._id, sessionId: newSession._id },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
@@ -101,14 +101,14 @@ const loginUser = async (req, res, next) => {
   });
 
   const accessToken = jwt.sign(
-    { sessionId: newSession._id },
+    { userId: existUser._id, sessionId: newSession._id },
     process.env.JWT_ACCESS_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
     }
   );
   const refreshToken = jwt.sign(
-    { sessionId: newSession._id },
+    { userId: existUser._id, sessionId: newSession._id },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,

@@ -43,26 +43,24 @@ const registerUser = async (req, res, next) => {
   };
   const user = await addUser(userData);
 
+  const newSession = await Session.create({
+    userId: user._id,
+  });
+
   const accessToken = jwt.sign(
-    { id: user._id },
+    { sessionId: newSession._id },
     process.env.JWT_ACCESS_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
     }
   );
-
   const refreshToken = jwt.sign(
-    { id: user._id },
+    { sessionId: newSession._id },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
     }
   );
-
-  await Session.create({
-    userId: user._id,
-    refreshToken: refreshToken,
-  });
   const updatedUser = await changeUser(
     { _id: user._id },
     { token: accessToken }
@@ -98,26 +96,24 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
+  const newSession = await Session.create({
+    userId: user._id,
+  });
+
   const accessToken = jwt.sign(
-    { id: existUser._id },
+    { sessionId: newSession._id },
     process.env.JWT_ACCESS_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
     }
   );
-
   const refreshToken = jwt.sign(
-    { id: existUser._id },
+    { sessionId: newSession._id },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
     }
   );
-
-  await Session.create({
-    userId: existUser._id,
-    refreshToken: refreshToken,
-  });
 
   await changeUser({ email: emailInLowerCase }, { token: accessToken });
   res.json({

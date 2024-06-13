@@ -7,7 +7,6 @@ const sessionSchema = new Schema(
       ref: 'User',
       default: null,
     },
-    refreshToken: { type: String, required: true },
   },
   { versionKey: false }
 );

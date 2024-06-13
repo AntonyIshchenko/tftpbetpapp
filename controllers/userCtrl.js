@@ -7,6 +7,7 @@ import 'dotenv/config';
 import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import sizeOf from 'image-size';
+import Session from '../schemas/sessionModel.js';
 
 const getUserResponseObject = user => {
   return {
@@ -41,15 +42,35 @@ const registerUser = async (req, res, next) => {
     theme: userTheme,
   };
   const user = await addUser(userData);
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.TOKEN_EXPIRES_IN,
+
+  const newSession = await Session.create({
+    userId: user._id,
   });
-  const updatedUser = await changeUser({ _id: user._id }, { token });
+
+  const accessToken = jwt.sign(
+    { sessionId: newSession._id },
+    process.env.JWT_ACCESS_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
+    }
+  );
+  const refreshToken = jwt.sign(
+    { sessionId: newSession._id },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+    }
+  );
+  const updatedUser = await changeUser(
+    { _id: user._id },
+    { token: accessToken }
+  );
   res.status(201).json({
     status: 'success',
     data: {
       user: getUserResponseObject(updatedUser),
-      token: token,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     },
   });
 };
@@ -75,15 +96,32 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
-  const token = jwt.sign({ id: existUser._id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
+  const newSession = await Session.create({
+    userId: user._id,
   });
-  await changeUser({ email: emailInLowerCase }, { token });
+
+  const accessToken = jwt.sign(
+    { sessionId: newSession._id },
+    process.env.JWT_ACCESS_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
+    }
+  );
+  const refreshToken = jwt.sign(
+    { sessionId: newSession._id },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+    }
+  );
+
+  await changeUser({ email: emailInLowerCase }, { token: accessToken });
   res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      token: token,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     },
   });
 };
@@ -104,11 +142,11 @@ const updateUser = async (req, res, next) => {
   const { id } = req.user;
   const { name, email, password, theme } = req.body;
   const updates = {};
-  
+
   if (name) {
     updates.name = name;
   }
-  
+
   if (email) {
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
@@ -117,7 +155,7 @@ const updateUser = async (req, res, next) => {
     }
     updates.email = emailInLowerCase;
   }
-  
+
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
@@ -125,7 +163,7 @@ const updateUser = async (req, res, next) => {
   if (theme) {
     updates.theme = theme;
   }
-  
+
   if (req.file) {
     try {
       const dimensions = await checkImageSize(req.file.path);
@@ -148,8 +186,8 @@ const updateUser = async (req, res, next) => {
         try {
           await cloudinary.uploader.destroy(req.user.avatarPublicId);
         } catch (error) {
-          // we don't think that error should stop our flow 
-        }     
+          // we don't think that error should stop our flow
+        }
       }
       await fs.unlink(req.file.path);
     } catch (error) {
@@ -157,7 +195,7 @@ const updateUser = async (req, res, next) => {
       throw HttpError(500, 'Error uploading image');
     }
   }
-  
+
   if (Object.keys(updates).length === 0) {
     throw HttpError(400, 'No fields to update');
   }
@@ -174,10 +212,15 @@ const updateUser = async (req, res, next) => {
   });
 };
 
+const refreshToken = (req, res, next) => {
+  res.json('Refresh');
+};
+
 export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
+  refreshToken: ctrlWrapper(refreshToken),
   getCurrentUser,
 };

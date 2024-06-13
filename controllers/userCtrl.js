@@ -55,7 +55,7 @@ const registerUser = async (req, res, next) => {
     }
   );
   const refreshToken = jwt.sign(
-    { userId: user._id, sessionId: newSession._id },
+    { userId: user._id, sessionId: newSession._id, isRefresh: true },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
@@ -108,7 +108,7 @@ const loginUser = async (req, res, next) => {
     }
   );
   const refreshToken = jwt.sign(
-    { userId: existUser._id, sessionId: newSession._id },
+    { userId: existUser._id, sessionId: newSession._id, isRefresh: true },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,

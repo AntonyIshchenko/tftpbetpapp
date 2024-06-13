@@ -12,7 +12,6 @@ import { handleContentType } from '../middlewares/handleContentType.js';
 const userRouter = express.Router();
 
 userRouter.get('/current', authMiddleware, userCtrl.getCurrentUser);
-userRouter.get('/refresh', userCtrl.refreshToken); // прописати!
 userRouter.post(
   '/register',
   validateBody(createUserSchema),

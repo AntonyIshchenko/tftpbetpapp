@@ -97,7 +97,7 @@ const loginUser = async (req, res, next) => {
     throw HttpError(401, 'Email or password is wrong');
   }
   const newSession = await Session.create({
-    userId: user._id,
+    userId: existUser._id,
   });
 
   const accessToken = jwt.sign(

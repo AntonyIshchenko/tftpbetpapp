@@ -15,8 +15,8 @@ export const authMiddleware = ctrlWrapper(async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const user = await User.findById(decoded.userId);
     if (user === null || user.token !== token) {
       throw HttpError(401, 'Not authorized');
     }

@@ -46,3 +46,11 @@ export const updateUserSchema = Joi.object({
     'any.only': 'Theme must be one of "light", "dark", or "violet"',
   }),
 });
+
+// export const mailOptionsToUserSchema = Joi.object({
+
+// })
+
+// export const mailOptionsToServiceSchema = Joi.object({
+
+// })

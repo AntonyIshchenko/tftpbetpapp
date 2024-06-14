@@ -8,6 +8,7 @@ import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import sizeOf from 'image-size';
 import Session from '../schemas/sessionModel.js';
+import { generateTokens } from '../helpers/generateTokens.js';
 
 const getUserResponseObject = user => {
   return {
@@ -47,20 +48,10 @@ const registerUser = async (req, res, next) => {
     userId: user._id,
   });
 
-  const accessToken = jwt.sign(
-    { userId: user._id, sessionId: newSession._id },
-    process.env.JWT_ACCESS_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
-    }
-  );
-  const refreshToken = jwt.sign(
-    { userId: user._id, sessionId: newSession._id },
-    process.env.JWT_REFRESH_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
-    }
-  );
+  const tokens = generateTokens(user._id, newSession._id);
+  const accessToken = tokens.accessToken;
+  const refreshToken = tokens.refreshToken;
+
   const updatedUser = await changeUser(
     { _id: user._id },
     { token: accessToken }
@@ -100,20 +91,9 @@ const loginUser = async (req, res, next) => {
     userId: existUser._id,
   });
 
-  const accessToken = jwt.sign(
-    { userId: existUser._id, sessionId: newSession._id },
-    process.env.JWT_ACCESS_SECRET,
-    {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
-    }
-  );
-  const refreshToken = jwt.sign(
-    { userId: existUser._id, sessionId: newSession._id },
-    process.env.JWT_REFRESH_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
-    }
-  );
+  const tokens = generateTokens(existUser._id, newSession._id);
+  const accessToken = tokens.accessToken;
+  const refreshToken = tokens.refreshToken;
 
   await changeUser({ email: emailInLowerCase }, { token: accessToken });
   res.json({

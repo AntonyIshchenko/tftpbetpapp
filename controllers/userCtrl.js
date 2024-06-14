@@ -2,13 +2,12 @@ import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import sizeOf from 'image-size';
-import Session from '../schemas/sessionModel.js';
 import { generateTokens } from '../helpers/generateTokens.js';
+import { createSession } from '../services/tokensServices.js';
 
 const getUserResponseObject = user => {
   return {
@@ -44,13 +43,13 @@ const registerUser = async (req, res, next) => {
   };
   const user = await addUser(userData);
 
-  const newSession = await Session.create({
-    userId: user._id,
-  });
+  const newSession = await createSession(user._id);
 
   const tokens = generateTokens(user._id, newSession._id);
   const accessToken = tokens.accessToken;
   const refreshToken = tokens.refreshToken;
+  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresIn;
+  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresIn;
 
   const updatedUser = await changeUser(
     { _id: user._id },
@@ -60,8 +59,11 @@ const registerUser = async (req, res, next) => {
     status: 'success',
     data: {
       user: getUserResponseObject(updatedUser),
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+      accessToken: { value: accessToken, expiresIn: accessTokenExpiryDateUTC },
+      refreshToken: {
+        value: refreshToken,
+        expiresIn: refreshTokenExpiryDateUTC,
+      },
     },
   });
 };
@@ -87,21 +89,24 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
-  const newSession = await Session.create({
-    userId: existUser._id,
-  });
+  const newSession = await createSession(existUser._id);
 
   const tokens = generateTokens(existUser._id, newSession._id);
   const accessToken = tokens.accessToken;
   const refreshToken = tokens.refreshToken;
+  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresIn;
+  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresIn;
 
   await changeUser({ email: emailInLowerCase }, { token: accessToken });
   res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+      accessToken: { value: accessToken, expiresIn: accessTokenExpiryDateUTC },
+      refreshToken: {
+        value: refreshToken,
+        expiresIn: refreshTokenExpiryDateUTC,
+      },
     },
   });
 };

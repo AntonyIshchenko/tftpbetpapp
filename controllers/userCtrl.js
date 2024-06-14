@@ -8,6 +8,8 @@ import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import sizeOf from 'image-size';
 
+import transporter from '../mail.js';
+
 const getUserResponseObject = user => {
   return {
     id: user._id,
@@ -104,11 +106,11 @@ const updateUser = async (req, res, next) => {
   const { id } = req.user;
   const { name, email, password, theme } = req.body;
   const updates = {};
-  
+
   if (name) {
     updates.name = name;
   }
-  
+
   if (email) {
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
@@ -117,7 +119,7 @@ const updateUser = async (req, res, next) => {
     }
     updates.email = emailInLowerCase;
   }
-  
+
   if (password) {
     updates.password = await bcrypt.hash(password, 10);
   }
@@ -125,7 +127,7 @@ const updateUser = async (req, res, next) => {
   if (theme) {
     updates.theme = theme;
   }
-  
+
   if (req.file) {
     try {
       const dimensions = await checkImageSize(req.file.path);
@@ -149,7 +151,7 @@ const updateUser = async (req, res, next) => {
           await cloudinary.uploader.destroy(req.user.avatarPublicId);
         } catch (error) {
           // we don't think that error should stop our flow 
-        }     
+        }
       }
       await fs.unlink(req.file.path);
     } catch (error) {
@@ -157,7 +159,7 @@ const updateUser = async (req, res, next) => {
       throw HttpError(500, 'Error uploading image');
     }
   }
-  
+
   if (Object.keys(updates).length === 0) {
     throw HttpError(400, 'No fields to update');
   }
@@ -174,10 +176,41 @@ const updateUser = async (req, res, next) => {
   });
 };
 
+const sendHelpEmail = async (req, res) => {
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { email, helpDescription } = req.body;
+
+  const mailOptionsToUser = {
+    from: process.env.GMAIL_USER, //Адреса, з якої відправляється лист про допомог
+    to: email, //Використовуємо email з req.body як відправника
+    subject: 'Need Help Request',
+    html: `We have registered your request with our support team. Please expect a response soon!
+      <h2>"${helpDescription}"</h2>`,
+    text: `We have registered your request with our support team. Please expect a response soon! : ${helpDescription}`
+  }
+
+  const mailOptionsToService = {
+    from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
+    to: process.env.CUSTOMER_SER, // адреса служби підтримки
+    subject: 'User Needs Help',
+    html: `User with email ${email} has a problem:
+            <h2>${helpDescription}</h2>`,
+    text: `User with email ${email} has problem : ${helpDescription}`,
+  }
+
+  await transporter.sendMail(mailOptionsToUser);
+  await transporter.sendMail(mailOptionsToService);
+
+  res.send('Email sent');
+}
+
 export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
+  sendHelpEmail: ctrlWrapper(sendHelpEmail)
 };

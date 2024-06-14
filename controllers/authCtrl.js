@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import HttpError from '../helpers/httpError.js';
 import Session from '../schemas/sessionModel.js';
 import { changeUser, findUser } from '../services/usersServices.js';
+import { generateTokens } from '../helpers/generateTokens.js';
+import { findSession } from '../services/tokensServices.js';
 
 const refreshToken = async (req, res, next) => {
   const { refreshToken } = req.body;
@@ -13,6 +15,7 @@ const refreshToken = async (req, res, next) => {
 
   const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
   const session = await Session.findById(decoded.sessionId);
+  // const session = await findSession(decoded.sessionId); // так не працює (
 
   if (!session) {
     throw HttpError(401, 'Invalid refresh token');
@@ -30,17 +33,9 @@ const refreshToken = async (req, res, next) => {
     userId: user._id,
   });
 
-  const newAccessToken = jwt.sign(
-    { userId: user._id, sessionId: newSession._id }, // userId tmp
-    process.env.JWT_ACCESS_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN }
-  );
-
-  const newRefreshToken = jwt.sign(
-    { userId: user._id, sessionId: newSession._id }, // userId tmp
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN }
-  );
+  const tokens = generateTokens(user._id, newSession._id);
+  const newAccessToken = tokens.accessToken;
+  const newRefreshToken = tokens.refreshToken;
 
   await changeUser({ _id: newSession.userId }, { token: newAccessToken });
 

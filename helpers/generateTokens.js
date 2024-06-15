@@ -30,8 +30,8 @@ export const generateTokens = (userId, sessionId) => {
   return {
     accessToken,
     refreshToken,
-    accessTokenExpiresAt: accessTokenExpiryDateUTC,
-    refreshTokenExpiresAt: refreshTokenExpiryDateUTC,
+    // accessTokenExpiresAt: accessTokenExpiryDateUTC,
+    // refreshTokenExpiresAt: refreshTokenExpiryDateUTC,
   };
 
   // return {

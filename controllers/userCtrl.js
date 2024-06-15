@@ -1,11 +1,12 @@
+import * as fs from 'node:fs/promises';
+import bcrypt from 'bcryptjs';
+import sizeOf from 'image-size';
+import 'dotenv/config';
+
 import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
-import bcrypt from 'bcryptjs';
-import 'dotenv/config';
-import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
-import sizeOf from 'image-size';
 import { generateTokens } from '../helpers/generateTokens.js';
 import { createSession } from '../services/sessionsServices.js';
 
@@ -45,13 +46,16 @@ const registerUser = async (req, res, next) => {
 
   const newSession = await createSession({ userId: user._id });
 
-  const tokens = generateTokens(user._id, newSession._id);
+  const { accessToken, refreshToken } = generateTokens(
+    user._id,
+    newSession._id
+  );
   // const accessToken = tokens.accessToken.value;
 
-  const accessToken = tokens.accessToken;
-  const refreshToken = tokens.refreshToken;
-  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
+  // const accessToken = tokens.accessToken;
+  // const refreshToken = tokens.refreshToken;
+  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
   const updatedUser = await changeUser(
     { _id: user._id },
@@ -61,20 +65,10 @@ const registerUser = async (req, res, next) => {
     status: 'success',
     data: {
       user: getUserResponseObject(updatedUser),
-      accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
-      refreshToken: {
-        value: refreshToken,
-        expiresAt: refreshTokenExpiryDateUTC,
-      },
+      accessToken,
+      refreshToken,
     },
   });
-  // res.status(201).json({
-  //   status: 'success',
-  //   data: {
-  //     user: getUserResponseObject(updatedUser),
-  //     tokens: tokens,
-  //   },
-  // });
 };
 
 const getCurrentUser = (req, res, next) => {
@@ -100,13 +94,16 @@ const loginUser = async (req, res, next) => {
   }
   const newSession = await createSession({ userId: existUser._id });
 
-  const tokens = generateTokens(existUser._id, newSession._id);
+  const { accessToken, refreshToken } = generateTokens(
+    existUser._id,
+    newSession._id
+  );
   // const accessToken = tokens.accessToken.value;
 
-  const accessToken = tokens.accessToken;
-  const refreshToken = tokens.refreshToken;
-  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
+  // const accessToken = tokens.accessToken;
+  // const refreshToken = tokens.refreshToken;
+  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
   await changeUser({ email: emailInLowerCase }, { token: accessToken });
 
@@ -114,21 +111,10 @@ const loginUser = async (req, res, next) => {
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
-      refreshToken: {
-        value: refreshToken,
-        expiresAt: refreshTokenExpiryDateUTC,
-      },
+      accessToken,
+      refreshToken,
     },
   });
-
-  // res.json({
-  //   status: 'success',
-  //   data: {
-  //     user: getUserResponseObject(existUser),
-  //     tokens: tokens,
-  //   },
-  // });
 };
 
 const logoutUser = async (req, res, next) => {
@@ -217,15 +203,10 @@ const updateUser = async (req, res, next) => {
   });
 };
 
-const refreshToken = (req, res, next) => {
-  res.json('Refresh');
-};
-
 export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
-  refreshToken: ctrlWrapper(refreshToken),
   getCurrentUser,
 };

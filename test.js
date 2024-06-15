@@ -35,4 +35,10 @@ setTimeout(() => {
     'Parsed Refresh Token Expiry Date (UTC):',
     parsedRefreshTokenExpiryDate
   );
+
+  const newDate = new Date();
+  const tokenDate = new Date(parsedAccessTokenExpiryDate);
+  console.log(newDate);
+  console.log(tokenDate);
+  console.log(newDate - tokenDate);
 }, 3000);

@@ -7,7 +7,7 @@ import {
   createSession,
   deleteSession,
   findSession,
-} from '../services/tokensServices.js';
+} from '../services/sessionsServices.js';
 
 const refreshToken = async (req, res, next) => {
   const { refreshToken } = req.body;
@@ -17,7 +17,7 @@ const refreshToken = async (req, res, next) => {
   }
 
   const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-  const session = await findSession(decoded.sessionId);
+  const session = await findSession({ _id: decoded.sessionId });
 
   if (!session) {
     throw HttpError(401, 'Invalid refresh token');
@@ -29,17 +29,17 @@ const refreshToken = async (req, res, next) => {
     throw HttpError(401, 'User not found');
   }
 
-  await deleteSession(decoded.sessionId);
+  await deleteSession({ _id: decoded.sessionId });
 
-  const newSession = await createSession(user._id);
+  const newSession = await createSession({ userId: user._id });
 
   const tokens = generateTokens(user._id, newSession._id);
+  // const newAccessToken = tokens.accessToken.value;
+
   const newAccessToken = tokens.accessToken;
   const newRefreshToken = tokens.refreshToken;
-  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresIn;
-  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresIn;
-
-  console.log(accessTokenExpiryDateUTC);
+  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
   await changeUser({ _id: newSession.userId }, { token: newAccessToken });
 
@@ -56,6 +56,10 @@ const refreshToken = async (req, res, next) => {
       },
     },
   });
+  // res.json({
+  //   status: 'success',
+  //   data: tokens,
+  // });
 };
 
 export default {

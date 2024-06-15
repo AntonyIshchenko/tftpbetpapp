@@ -7,7 +7,7 @@ import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import sizeOf from 'image-size';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession } from '../services/tokensServices.js';
+import { createSession } from '../services/sessionsServices.js';
 
 const getUserResponseObject = user => {
   return {
@@ -43,13 +43,15 @@ const registerUser = async (req, res, next) => {
   };
   const user = await addUser(userData);
 
-  const newSession = await createSession(user._id);
+  const newSession = await createSession({ userId: user._id });
 
   const tokens = generateTokens(user._id, newSession._id);
+  // const accessToken = tokens.accessToken.value;
+
   const accessToken = tokens.accessToken;
   const refreshToken = tokens.refreshToken;
-  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresIn;
-  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresIn;
+  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
   const updatedUser = await changeUser(
     { _id: user._id },
@@ -59,13 +61,20 @@ const registerUser = async (req, res, next) => {
     status: 'success',
     data: {
       user: getUserResponseObject(updatedUser),
-      accessToken: { value: accessToken, expiresIn: accessTokenExpiryDateUTC },
+      accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
       refreshToken: {
         value: refreshToken,
-        expiresIn: refreshTokenExpiryDateUTC,
+        expiresAt: refreshTokenExpiryDateUTC,
       },
     },
   });
+  // res.status(201).json({
+  //   status: 'success',
+  //   data: {
+  //     user: getUserResponseObject(updatedUser),
+  //     tokens: tokens,
+  //   },
+  // });
 };
 
 const getCurrentUser = (req, res, next) => {
@@ -89,26 +98,37 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
-  const newSession = await createSession(existUser._id);
+  const newSession = await createSession({ userId: existUser._id });
 
   const tokens = generateTokens(existUser._id, newSession._id);
+  // const accessToken = tokens.accessToken.value;
+
   const accessToken = tokens.accessToken;
   const refreshToken = tokens.refreshToken;
-  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresIn;
-  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresIn;
+  const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
   await changeUser({ email: emailInLowerCase }, { token: accessToken });
+
   res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      accessToken: { value: accessToken, expiresIn: accessTokenExpiryDateUTC },
+      accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
       refreshToken: {
         value: refreshToken,
-        expiresIn: refreshTokenExpiryDateUTC,
+        expiresAt: refreshTokenExpiryDateUTC,
       },
     },
   });
+
+  // res.json({
+  //   status: 'success',
+  //   data: {
+  //     user: getUserResponseObject(existUser),
+  //     tokens: tokens,
+  //   },
+  // });
 };
 
 const logoutUser = async (req, res, next) => {

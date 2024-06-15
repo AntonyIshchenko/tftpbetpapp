@@ -5,14 +5,14 @@ import ms from 'ms';
 export const generateTokens = (userId, sessionId) => {
   const currentTime = Date.now();
 
-  const accessTokenExpiresInMs = ms(process.env.ACCESS_TOKEN_EXPIRES_IN);
-  const refreshTokenExpiresInMs = ms(process.env.REFRESH_TOKEN_EXPIRES_IN);
+  const accessTokenExpiresAtMs = ms(process.env.ACCESS_TOKEN_EXPIRES_IN);
+  const refreshTokenExpiresAtMs = ms(process.env.REFRESH_TOKEN_EXPIRES_IN);
 
   const accessTokenExpiryDateUTC = new Date(
-    currentTime + accessTokenExpiresInMs
+    currentTime + accessTokenExpiresAtMs
   ).toISOString();
   const refreshTokenExpiryDateUTC = new Date(
-    currentTime + refreshTokenExpiresInMs
+    currentTime + refreshTokenExpiresAtMs
   ).toISOString();
 
   const accessToken = jwt.sign(
@@ -30,7 +30,12 @@ export const generateTokens = (userId, sessionId) => {
   return {
     accessToken,
     refreshToken,
-    accessTokenExpiresIn: accessTokenExpiryDateUTC,
-    refreshTokenExpiresIn: refreshTokenExpiryDateUTC,
+    accessTokenExpiresAt: accessTokenExpiryDateUTC,
+    refreshTokenExpiresAt: refreshTokenExpiryDateUTC,
   };
+
+  // return {
+  //   accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
+  //   refreshToken: { value: refreshToken, expiresAt: refreshTokenExpiryDateUTC },
+  // };
 };

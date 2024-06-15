@@ -3,6 +3,6 @@ import authCtrl from '../controllers/authCtrl.js';
 
 const authRouter = express.Router();
 
-authRouter.get('/refresh-token', authCtrl.refreshToken); // прописати!
+authRouter.get('/refresh-tokens', authCtrl.refreshTokens); // прописати!
 
 export default authRouter;

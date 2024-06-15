@@ -7,46 +7,67 @@ import HttpError from '../helpers/httpError.js';
 import Session from '../schemas/sessionModel.js';
 import { changeUser, findUser, addUser } from '../services/usersServices.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { findSession } from '../services/tokensServices.js';
+import {
+  createSession,
+  deleteSession,
+  findSession,
+} from '../services/sessionsServices.js';
 
-const refreshToken = async (req, res, next) => {
-  const { refreshToken } = req.body;
+const refreshTokens = async (req, res, next) => {
+  // const { refreshToken } = req.body;
 
-  if (!refreshToken) {
-    throw HttpError(400, 'Refresh token is required');
+  const notAuthError = HttpError(401, 'Not authorized');
+
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    throw notAuthError;
   }
 
-  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-  const session = await Session.findById(decoded.sessionId);
-  // const session = await findSession(decoded.sessionId); // так не працює (
+  const [bearer, token] = authorizationHeader.split(' ');
+  if (bearer !== 'Bearer' || !token) {
+    throw notAuthError;
+  }
 
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+  } catch (error) {
+    throw notAuthError;
+  }
+
+  const session = await findSession({ _id: decoded.sessionId });
   if (!session) {
-    throw HttpError(401, 'Invalid refresh token');
+    throw notAuthError;
   }
 
   const user = await findUser({ _id: session.userId });
-
   if (!user) {
-    throw HttpError(401, 'User not found');
+    throw notAuthError;
   }
 
-  await Session.findByIdAndDelete(decoded.sessionId);
+  await deleteSession({ _id: decoded.sessionId });
 
-  const newSession = await Session.create({
-    userId: user._id,
-  });
+  const newSession = await createSession({ userId: user._id });
 
-  const tokens = generateTokens(user._id, newSession._id);
-  const newAccessToken = tokens.accessToken;
-  const newRefreshToken = tokens.refreshToken;
+  const { accessToken, refreshToken } = generateTokens(
+    user._id,
+    newSession._id
+  );
 
-  await changeUser({ _id: newSession.userId }, { token: newAccessToken });
+  // const newAccessToken = tokens.accessToken.value;
+
+  // const newAccessToken = tokens.accessToken;
+  // const newRefreshToken = tokens.refreshToken;
+  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
+
+  await changeUser({ _id: newSession.userId }, { token: accessToken });
 
   res.json({
     status: 'success',
     data: {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      accessToken,
+      refreshToken,
     },
   });
 };
@@ -136,7 +157,7 @@ const googleRedirect = async (req, res, next) => {
 };
 
 export default {
-  refreshToken: ctrlWrapper(refreshToken),
   googleAuth: ctrlWrapper(googleAuth),
   googleRedirect: ctrlWrapper(googleRedirect),
+  refreshTokens: ctrlWrapper(refreshTokens),
 };

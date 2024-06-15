@@ -21,6 +21,10 @@
       "description": "Authorization and user endpoints"
     },
     {
+      "name": "Auth",
+      "description": "Additional service authorization endpoints"
+    },
+    {
       "name": "Board",
       "description": "User boards endpoints"
     },
@@ -284,6 +288,120 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error409Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/need-help": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register user Need help request",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "description": "Need help object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedHelpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedHelpResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (invalid request body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error400Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email/password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error500Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/auth/google": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "sign up or login with Google",
+        "parameters": [],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google authorization"
+          }
+        }
+      }
+    },
+    "/auth/refresh-tokens": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get new access and refresh tokens, authorization with REFRESH token",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokensResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error401Response"
                 }
               }
             }
@@ -1141,7 +1259,7 @@
                   }
                 }
               },
-              "token": {
+              "accessToken": {
                 "type": "string",
                 "description": "User access token",
                 "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
@@ -1215,6 +1333,64 @@
           }
         }
       },
+      "NeedHelpRequest": {
+        "type": "object",
+        "required": ["email", "comment"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "comment": {
+            "type": "string",
+            "description": "User problem description",
+            "example": "I have problem with creating task..."
+          }
+        }
+      },
+      "NeedHelpResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "null",
+            "description": "returned data",
+            "example": null
+          }
+        }
+      },
+
+      "RefreshTokensResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status type",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string",
+                "description": "User access token",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+              },
+              "refreshToken": {
+                "type": "string",
+                "description": "User refresh token",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+              }
+            }
+          }
+        }
+      },
 
       "CreateBoardRequest": {
         "type": "object",
@@ -1267,9 +1443,45 @@
                     "example": "icon-cube"
                   },
                   "background": {
-                    "type": "string",
-                    "description": "Board background picture name or none",
-                    "example": "moon"
+                    "type": "object",
+                    "description": "Board background set object or null",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Background set name",
+                        "example": "moon"
+                      },
+                      "desktop": {
+                        "type": "string",
+                        "description": "Background desktop image",
+                        "example": "https://..."
+                      },
+                      "desktop2x": {
+                        "type": "string",
+                        "description": "Background desktop image 2x",
+                        "example": "https://..."
+                      },
+                      "tablet": {
+                        "type": "string",
+                        "description": "Background tablet image",
+                        "example": "https://..."
+                      },
+                      "tablet2x": {
+                        "type": "string",
+                        "description": "Background tablet image 2x",
+                        "example": "https://..."
+                      },
+                      "mobile": {
+                        "type": "string",
+                        "description": "Background mobile image",
+                        "example": "https://..."
+                      },
+                      "mobile2x": {
+                        "type": "string",
+                        "description": "Background mobile image 2x",
+                        "example": "https://..."
+                      }
+                    }
                   }
                 }
               }
@@ -1309,9 +1521,45 @@
                       "example": "icon-cube"
                     },
                     "background": {
-                      "type": "string",
-                      "description": "Board background picture name or none",
-                      "example": "moon"
+                      "type": "object",
+                      "description": "Board background set object or null",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Background set name",
+                          "example": "spring"
+                        },
+                        "desktop": {
+                          "type": "string",
+                          "description": "Background desktop image",
+                          "example": "https://..."
+                        },
+                        "desktop2x": {
+                          "type": "string",
+                          "description": "Background desktop image 2x",
+                          "example": "https://..."
+                        },
+                        "tablet": {
+                          "type": "string",
+                          "description": "Background tablet image",
+                          "example": "https://..."
+                        },
+                        "tablet2x": {
+                          "type": "string",
+                          "description": "Background tablet image 2x",
+                          "example": "https://..."
+                        },
+                        "mobile": {
+                          "type": "string",
+                          "description": "Background mobile image",
+                          "example": "https://..."
+                        },
+                        "mobile2x": {
+                          "type": "string",
+                          "description": "Background mobile image 2x",
+                          "example": "https://..."
+                        }
+                      }
                     }
                   }
                 },
@@ -1320,13 +1568,56 @@
                     "id": "66621f08aa779d7c5815ac62",
                     "name": "My project 1",
                     "icon": "icon-cube",
-                    "background": "moon"
+                    "background": {
+                      "name": "moon",
+                      "desktop": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379163/backgrounds/spring/mmxu2ezfhhxckjkbq7my.webp",
+                      "desktop2x": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379177/backgrounds/spring/r566txanmofrtcvzroig.webp",
+                      "tablet": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379314/backgrounds/spring/nrupp9p36nnkfjgxtztj.webp",
+                      "tablet2x": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379326/backgrounds/spring/gtxdcjrnrdrfyzwe2cfj.webp",
+                      "mobile": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379268/backgrounds/spring/wu0y5nlpvfz3yzmiaswd.webp",
+                      "mobile2x": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379285/backgrounds/spring/jbeonlzbcf07tlnpt2ko.webp"
+                    }
                   },
                   {
                     "id": "66621f23aa779d7c5815ac64",
                     "name": "My project 2",
                     "icon": "icon-star",
-                    "background": ""
+                    "background": null
+                  }
+                ]
+              },
+              "backgroundLogos": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Background set name",
+                      "example": "spring"
+                    },
+                    "mini": {
+                      "type": "string",
+                      "description": "Background set logo image",
+                      "example": "https://..."
+                    },
+                    "mini2x": {
+                      "type": "string",
+                      "description": "Background set logo image 2x",
+                      "example": "https://..."
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "name": "spring",
+                    "mini": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379196/backgrounds/spring/k7jrkjxvdb9ceacmwk5z.webp",
+                    "mini2x": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379249/backgrounds/spring/rk3epcbucdmvirbsd1il.webp"
+                  },
+                  {
+                    "name": "stars",
+                    "mini": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379390/backgrounds/stars/xvygohxiqbkk5f1ambcy.webp",
+                    "mini2x": "https://res.cloudinary.com/djyespoj6/image/upload/v1718379408/backgrounds/stars/wyiawf1vv1h39cqaeq3l.webp"
                   }
                 ]
               }
@@ -1364,9 +1655,45 @@
                     "example": "icon-cube"
                   },
                   "background": {
-                    "type": "string",
-                    "description": "Board background picture name or none",
-                    "example": "moon"
+                    "type": "object",
+                    "description": "Board background set object or null",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Background set name",
+                        "example": "spring"
+                      },
+                      "desktop": {
+                        "type": "string",
+                        "description": "Background desktop image",
+                        "example": "https://..."
+                      },
+                      "desktop2x": {
+                        "type": "string",
+                        "description": "Background desktop image 2x",
+                        "example": "https://..."
+                      },
+                      "tablet": {
+                        "type": "string",
+                        "description": "Background tablet image",
+                        "example": "https://..."
+                      },
+                      "tablet2x": {
+                        "type": "string",
+                        "description": "Background tablet image 2x",
+                        "example": "https://..."
+                      },
+                      "mobile": {
+                        "type": "string",
+                        "description": "Background mobile image",
+                        "example": "https://..."
+                      },
+                      "mobile2x": {
+                        "type": "string",
+                        "description": "Background mobile image 2x",
+                        "example": "https://..."
+                      }
+                    }
                   }
                 }
               },

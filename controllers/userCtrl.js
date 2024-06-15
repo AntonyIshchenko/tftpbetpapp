@@ -10,7 +10,7 @@ import sizeOf from 'image-size';
 import Session from '../schemas/sessionModel.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 
-const getUserResponseObject = user => {
+export const getUserResponseObject = user => {
   return {
     id: user._id,
     name: user.name,

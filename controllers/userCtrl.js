@@ -12,7 +12,7 @@ import { createSession } from '../services/sessionsServices.js';
 
 import transporter from '../helpers/mail.js';
 
-const getUserResponseObject = user => {
+export const getUserResponseObject = user => {
   return {
     id: user._id,
     name: user.name,

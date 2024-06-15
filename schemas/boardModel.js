@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { backgrounds } from '../data/index.js';
 
 const queryProjection = '-createdAt -updatedAt -owner';
 
@@ -35,6 +36,26 @@ const boardSchema = new mongoose.Schema(
             delete ret[field.slice(1)];
           }
         });
+
+        if (ret.background) {
+          const background = backgrounds.find(
+            elem => (elem.name = ret.background)
+          );
+
+          ret.background = background
+            ? {
+                name: background.name,
+                desktop: background.desktop,
+                desktop2x: background.desktop2x,
+                tablet: background.tablet,
+                tablet2x: background.tablet2x,
+                mobile: background.mobile,
+                mobile2x: background.mobile2x,
+              }
+            : null;
+        } else {
+          ret.background = null;
+        }
       },
     },
     toObject: { virtuals: true },

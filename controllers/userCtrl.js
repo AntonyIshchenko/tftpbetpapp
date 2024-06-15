@@ -1,12 +1,14 @@
+import * as fs from 'node:fs/promises';
+import bcrypt from 'bcryptjs';
+import sizeOf from 'image-size';
+import 'dotenv/config';
+
 import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import 'dotenv/config';
-import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
-import sizeOf from 'image-size';
+import { generateTokens } from '../helpers/generateTokens.js';
+import { createSession } from '../services/sessionsServices.js';
 
 import transporter from '../helpers/mail.js';
 
@@ -43,15 +45,30 @@ const registerUser = async (req, res, next) => {
     theme: userTheme,
   };
   const user = await addUser(userData);
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.TOKEN_EXPIRES_IN,
-  });
-  const updatedUser = await changeUser({ _id: user._id }, { token });
+
+  const newSession = await createSession({ userId: user._id });
+
+  const { accessToken, refreshToken } = generateTokens(
+    user._id,
+    newSession._id
+  );
+  // const accessToken = tokens.accessToken.value;
+
+  // const accessToken = tokens.accessToken;
+  // const refreshToken = tokens.refreshToken;
+  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
+
+  const updatedUser = await changeUser(
+    { _id: user._id },
+    { token: accessToken }
+  );
   res.status(201).json({
     status: 'success',
     data: {
       user: getUserResponseObject(updatedUser),
-      token: token,
+      accessToken,
+      refreshToken,
     },
   });
 };
@@ -77,15 +94,27 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
-  const token = jwt.sign({ id: existUser._id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
-  await changeUser({ email: emailInLowerCase }, { token });
+  const newSession = await createSession({ userId: existUser._id });
+
+  const { accessToken, refreshToken } = generateTokens(
+    existUser._id,
+    newSession._id
+  );
+  // const accessToken = tokens.accessToken.value;
+
+  // const accessToken = tokens.accessToken;
+  // const refreshToken = tokens.refreshToken;
+  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
+  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
+
+  await changeUser({ email: emailInLowerCase }, { token: accessToken });
+
   res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      token: token,
+      accessToken,
+      refreshToken,
     },
   });
 };
@@ -150,7 +179,7 @@ const updateUser = async (req, res, next) => {
         try {
           await cloudinary.uploader.destroy(req.user.avatarPublicId);
         } catch (error) {
-          // we don't think that error should stop our flow 
+          // we don't think that error should stop our flow
         }
       }
       await fs.unlink(req.file.path);

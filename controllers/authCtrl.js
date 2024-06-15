@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import queryString from 'query-string';
+import bcrypt from 'bcryptjs';
 
 import { getUserResponseObject } from './userCtrl.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
@@ -131,10 +132,11 @@ const googleRedirect = async (req, res, next) => {
 
   let user = await findUser({ email: userData.email });
   if (!user) {
+    const passwordHash = await bcrypt.hash(userData.id, 10);
     user = await addUser({
       name: userData.name ? userData.name : userData.email.split('@')[0],
       email: userData.email,
-      password: 'googleAuth',
+      password: passwordHash,
       avatar: userData.picture ? userData.picture : null,
     });
   }

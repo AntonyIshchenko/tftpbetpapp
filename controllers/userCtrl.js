@@ -10,6 +10,8 @@ import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 import { createSession } from '../services/sessionsServices.js';
 
+import transporter from '../helpers/mail.js';
+
 const getUserResponseObject = user => {
   return {
     id: user._id,
@@ -203,10 +205,56 @@ const updateUser = async (req, res, next) => {
   });
 };
 
+const sendHelpEmail = async (req, res) => {
+  if (Object.keys(req.body).length === 0)
+    throw HttpError(400, 'Body must have at least one field');
+
+  const { email, comment } = req.body;
+
+  const mailOptionsToUser = {
+    from: process.env.GMAIL_USER, //Адреса, з якої відправляється лист про допомог
+    to: email, //Використовуємо email з req.body як відправника
+    subject: 'Customer Support Request',
+    html: `
+      <div style="max-width: 600px; margin: 0 auto;">
+        <h1 style="font-family: Roboto, sans-serif; font-size: 16px; font-weight: 400; color: black">
+          Hello, <span style="font-family: Roboto, sans-serif;font-size: 16px; font-style: italic;">${email}</span>
+        </h1>
+        <p style="font-family: Roboto, sans-serif;font-size: 16px; color: black">
+          Thank you for reaching out to us. We have received your request and it has been successfully forwarded to our technical support team for review. Please expect a response from us very soon!
+          <br><br>
+            We appreciate your patience and trust in our TaskPro service. If you have any further questions or concerns, feel free to reach out to us anytime.
+          <br><br>
+          Best regards,<br>
+          <b>TaskPro</b>
+        </p>
+
+        <p style="font-family: Roboto, sans-serif;font-size: 14px; font-weight: 500; color: black"> Your message: <span style="font-family: Roboto, sans-serif;font-style: italic; color: #808080; font-size: 14px">"${comment}"</span></p>
+        <img src="https://i.gifer.com/NdR.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
+      </div>`,
+    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`
+  }
+
+  const mailOptionsToService = {
+    from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
+    to: process.env.CUSTOMER_SERVICE, // адреса служби підтримки
+    subject: 'Customer Help Request',
+    html: `User with email ${email} has a problem:
+            <h2>${comment}</h2>`,
+    text: `User with email ${email} has problem : ${comment}`,
+  }
+
+  await transporter.sendMail(mailOptionsToUser);
+  await transporter.sendMail(mailOptionsToService);
+
+  res.json({ status: 'success', data: null });
+}
+
 export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
+  sendHelpEmail: ctrlWrapper(sendHelpEmail)
 };

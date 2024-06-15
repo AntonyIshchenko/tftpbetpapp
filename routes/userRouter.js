@@ -3,8 +3,7 @@ import userCtrl from '../controllers/userCtrl.js';
 import {
   createUserSchema,
   loginUserSchema,
-  // mailOptionsToUserSchema,
-  // mailIptionsToServiceSchema,
+  mailOptionsToUserSchema,
   updateUserSchema,
 } from '../schemas/usersSchemas.js';
 import validateBody from '../helpers/validateBody.js';
@@ -31,9 +30,8 @@ userRouter.patch(
 
 userRouter.post('/need-help',
   authMiddleware,
+  validateBody(mailOptionsToUserSchema),
   userCtrl.sendHelpEmail
 );
-// validateBody(mailOptionsToUserSchema),
-
 
 export default userRouter;

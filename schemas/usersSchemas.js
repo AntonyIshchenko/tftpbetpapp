@@ -1,5 +1,7 @@
 import Joi from 'joi';
 
+const emailRegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export const createUserSchema = Joi.object({
   name: Joi.string().min(2).max(32).required().messages({
     'any.required': 'Field "name" is required',
@@ -47,10 +49,27 @@ export const updateUserSchema = Joi.object({
   }),
 });
 
-// export const mailOptionsToUserSchema = Joi.object({
+export const mailOptionsToUserSchema = Joi.object({
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .trim()
+    .required()
+    .pattern(emailRegExp)
+    .messages({
+      'string.email': 'Invalid email format. For example: example@domain.com',
+      'string.pattern.base': 'Email must be a valid email address. For example: example@domain.com',
+      'string.empty': 'Email field cannot be empty.',
+      'any.required': 'Email is required.'
+    }),
+  comment: Joi.string()
+    .min(15)
+    .trim()
+    .required()
+    .messages({
+      'string.min': 'Comment must be at least 20 characters long.',
+      'string.empty': 'Comment field cannot be empty.',
+      'any.required': 'Comment is required.'
+    })
+});
 
-// })
 
-// export const mailOptionsToServiceSchema = Joi.object({
-
-// })

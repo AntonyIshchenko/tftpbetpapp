@@ -12,3 +12,10 @@ export const createSession = async userId => {
 export const deleteSession = async sessionId => {
   return await Session.findByIdAndDelete(sessionId);
 };
+
+export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
+  return await Session.deleteMany({
+    userId: userId,
+    _id: { $ne: currentSessionId },
+  });
+};

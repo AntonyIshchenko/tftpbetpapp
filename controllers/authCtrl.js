@@ -10,6 +10,7 @@ import { changeUser, findUser, addUser } from '../services/usersServices.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 import {
   createSession,
+  deleteAllExceptCurrent,
   deleteSession,
   findSession,
 } from '../services/sessionsServices.js';
@@ -71,6 +72,24 @@ const refreshTokens = async (req, res, next) => {
       refreshToken,
     },
   });
+};
+
+const closeAllSessions = async (req, res, next) => {
+  const notAuthError = HttpError(401, 'Not authorized');
+
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    throw notAuthError;
+  }
+  const [bearer, token] = authorizationHeader.split(' ');
+  if (bearer !== 'Bearer' || !token) {
+    throw notAuthError;
+  }
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  const currentSessionId = decoded.sessionId;
+  await deleteAllExceptCurrent(decoded.userId, currentSessionId);
+
+  res.json('clean');
 };
 
 const googleAuth = async (req, res, next) => {
@@ -162,4 +181,5 @@ export default {
   googleAuth: ctrlWrapper(googleAuth),
   googleRedirect: ctrlWrapper(googleRedirect),
   refreshTokens: ctrlWrapper(refreshTokens),
+  closeAllSessions: ctrlWrapper(closeAllSessions),
 };

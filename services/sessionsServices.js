@@ -15,3 +15,23 @@ export const updateSession = (sessionData, updatedData) =>
 export const deleteSession = async sessionId => {
   return await Session.findByIdAndDelete(sessionId);
 };
+
+export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
+  const sessionsToDelete = await Session.find({
+    userId: userId,
+    _id: { $ne: currentSessionId },
+  });
+
+  await Session.deleteMany({
+    userId: userId,
+    _id: { $ne: currentSessionId },
+  });
+  return sessionsToDelete;
+};
+
+// export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
+//   return await Session.deleteMany({
+//     userId: userId,
+//     _id: { $ne: currentSessionId },
+//   });
+// };

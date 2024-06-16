@@ -9,6 +9,7 @@ import { changeUser, findUser, addUser } from '../services/usersServices.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 import {
   createSession,
+  deleteAllExceptCurrent,
   deleteSession,
   findSession,
   updateSession,
@@ -75,6 +76,16 @@ const refreshTokens = async (req, res, next) => {
       accessToken,
       refreshToken,
     },
+  });
+};
+
+const closeAllSessions = async (req, res, next) => {
+  const { id, userId } = req.session;
+  const deletedSessions = await deleteAllExceptCurrent(userId, id);
+
+  res.json({
+    status: 'success',
+    data: deletedSessions, // повертає масив видалених сессій.
   });
 };
 
@@ -165,4 +176,5 @@ export default {
   googleAuth: ctrlWrapper(googleAuth),
   googleRedirect: ctrlWrapper(googleRedirect),
   refreshTokens: ctrlWrapper(refreshTokens),
+  closeAllSessions: ctrlWrapper(closeAllSessions),
 };

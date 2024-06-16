@@ -2,14 +2,14 @@ import * as fs from 'node:fs/promises';
 import bcrypt from 'bcryptjs';
 import sizeOf from 'image-size';
 import 'dotenv/config';
+import jwt from 'jsonwebtoken';
 
 import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession, updateSession } from '../services/sessionsServices.js';
-
+import { createSession, updateSession, deleteSession } from '../services/sessionsServices.js';
 import transporter from '../helpers/mail.js';
 
 export const getUserResponseObject = user => {
@@ -58,18 +58,6 @@ const registerUser = async (req, res, next) => {
     { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
-  // const accessToken = tokens.accessToken.value;
-
-  // const accessToken = tokens.accessToken;
-  // const refreshToken = tokens.refreshToken;
-  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
-
-  // const updatedUser = await changeUser(
-  //   { _id: user._id },
-  //   { token: accessToken }
-  // );
-
   res.status(201).json({
     status: 'success',
     data: {
@@ -114,15 +102,6 @@ const loginUser = async (req, res, next) => {
     { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
-  // const accessToken = tokens.accessToken.value;
-
-  // const accessToken = tokens.accessToken;
-  // const refreshToken = tokens.refreshToken;
-  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
-
-  // await changeUser({ email: emailInLowerCase }, { token: accessToken });
-
   res.json({
     status: 'success',
     data: {
@@ -134,11 +113,9 @@ const loginUser = async (req, res, next) => {
 };
 
 const logoutUser = async (req, res, next) => {
-  const { id } = req.user;
-  const updatedUser = await changeUser({ _id: id }, { token: null });
-  if (!updatedUser) {
-    throw HttpError(404, 'User not found');
-  }
+  const { id } = req.session;
+
+  await deleteSession({ _id: id });
   res.json({
     status: 'success',
     data: null,

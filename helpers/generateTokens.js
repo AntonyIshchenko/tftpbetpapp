@@ -27,15 +27,15 @@ export const generateTokens = (userId, sessionId) => {
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN }
   );
 
-  return {
-    accessToken,
-    refreshToken,
-    // accessTokenExpiresAt: accessTokenExpiryDateUTC,
-    // refreshTokenExpiresAt: refreshTokenExpiryDateUTC,
-  };
-
   // return {
-  //   accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
-  //   refreshToken: { value: refreshToken, expiresAt: refreshTokenExpiryDateUTC },
+  //   accessToken,
+  //   refreshToken,
+  //   accessTokenExpiresAt: accessTokenExpiryDateUTC,
+  //   refreshTokenExpiresAt: refreshTokenExpiryDateUTC,
   // };
+
+  return {
+    accessToken: { value: accessToken, expiresAt: accessTokenExpiryDateUTC },
+    refreshToken: { value: refreshToken, expiresAt: refreshTokenExpiryDateUTC },
+  };
 };

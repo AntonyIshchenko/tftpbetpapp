@@ -9,6 +9,9 @@ export const createSession = async userId => {
   return await Session.create(userId);
 };
 
+export const updateSession = (sessionData, updatedData) =>
+  Session.findOneAndUpdate(sessionData, updatedData, { new: true });
+
 export const deleteSession = async sessionId => {
   return await Session.findByIdAndDelete(sessionId);
 };

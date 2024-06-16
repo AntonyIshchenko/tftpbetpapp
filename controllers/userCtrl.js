@@ -9,8 +9,7 @@ import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession, deleteSession } from '../services/sessionsServices.js';
-
+import { createSession, updateSession, deleteSession } from '../services/sessionsServices.js';
 import transporter from '../helpers/mail.js';
 
 export const getUserResponseObject = user => {
@@ -53,21 +52,16 @@ const registerUser = async (req, res, next) => {
     user._id,
     newSession._id
   );
-  // const accessToken = tokens.accessToken.value;
 
-  // const accessToken = tokens.accessToken;
-  // const refreshToken = tokens.refreshToken;
-  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
-
-  const updatedUser = await changeUser(
-    { _id: user._id },
-    { token: accessToken }
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: new Date(refreshToken.expiresAt) }
   );
+
   res.status(201).json({
     status: 'success',
     data: {
-      user: getUserResponseObject(updatedUser),
+      user: getUserResponseObject(user),
       accessToken,
       refreshToken,
     },
@@ -95,20 +89,18 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
+
   const newSession = await createSession({ userId: existUser._id });
 
   const { accessToken, refreshToken } = generateTokens(
     existUser._id,
     newSession._id
   );
-  // const accessToken = tokens.accessToken.value;
 
-  // const accessToken = tokens.accessToken;
-  // const refreshToken = tokens.refreshToken;
-  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
-
-  await changeUser({ email: emailInLowerCase }, { token: accessToken });
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: new Date(refreshToken.expiresAt) }
+  );
 
   res.json({
     status: 'success',
@@ -121,11 +113,8 @@ const loginUser = async (req, res, next) => {
 };
 
 const logoutUser = async (req, res, next) => {
-  const { id, userId } = req.session;
-  const updatedUser = await changeUser({ _id: userId }, { token: null });
-  if (!updatedUser) {
-    throw HttpError(404, 'User not found');
-  }
+  const { id } = req.session;
+
   await deleteSession({ _id: id });
   res.json({
     status: 'success',

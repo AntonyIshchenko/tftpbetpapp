@@ -8,7 +8,7 @@ import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession } from '../services/sessionsServices.js';
+import { createSession, updateSession } from '../services/sessionsServices.js';
 
 import transporter from '../helpers/mail.js';
 
@@ -52,6 +52,12 @@ const registerUser = async (req, res, next) => {
     user._id,
     newSession._id
   );
+
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: refreshToken.expiresAt }
+  );
+
   // const accessToken = tokens.accessToken.value;
 
   // const accessToken = tokens.accessToken;
@@ -59,14 +65,15 @@ const registerUser = async (req, res, next) => {
   // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
   // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
-  const updatedUser = await changeUser(
-    { _id: user._id },
-    { token: accessToken }
-  );
+  // const updatedUser = await changeUser(
+  //   { _id: user._id },
+  //   { token: accessToken }
+  // );
+
   res.status(201).json({
     status: 'success',
     data: {
-      user: getUserResponseObject(updatedUser),
+      user: getUserResponseObject(user),
       accessToken,
       refreshToken,
     },
@@ -94,12 +101,19 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
+
   const newSession = await createSession({ userId: existUser._id });
 
   const { accessToken, refreshToken } = generateTokens(
     existUser._id,
     newSession._id
   );
+
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: refreshToken.expiresAt }
+  );
+
   // const accessToken = tokens.accessToken.value;
 
   // const accessToken = tokens.accessToken;
@@ -107,7 +121,7 @@ const loginUser = async (req, res, next) => {
   // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
   // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
-  await changeUser({ email: emailInLowerCase }, { token: accessToken });
+  // await changeUser({ email: emailInLowerCase }, { token: accessToken });
 
   res.json({
     status: 'success',
@@ -232,8 +246,8 @@ const sendHelpEmail = async (req, res) => {
         <p style="font-family: Roboto, sans-serif;font-size: 14px; font-weight: 500; color: black"> Your message: <span style="font-family: Roboto, sans-serif;font-style: italic; color: #808080; font-size: 14px">"${comment}"</span></p>
         <img src="https://i.gifer.com/NdR.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
       </div>`,
-    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`
-  }
+    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`,
+  };
 
   const mailOptionsToService = {
     from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
@@ -242,13 +256,13 @@ const sendHelpEmail = async (req, res) => {
     html: `User with email ${email} has a problem:
             <h2>${comment}</h2>`,
     text: `User with email ${email} has problem : ${comment}`,
-  }
+  };
 
   await transporter.sendMail(mailOptionsToUser);
   await transporter.sendMail(mailOptionsToService);
 
   res.json({ status: 'success', data: null });
-}
+};
 
 export default {
   registerUser: ctrlWrapper(registerUser),
@@ -256,5 +270,5 @@ export default {
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
-  sendHelpEmail: ctrlWrapper(sendHelpEmail)
+  sendHelpEmail: ctrlWrapper(sendHelpEmail),
 };

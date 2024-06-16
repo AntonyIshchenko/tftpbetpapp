@@ -2,16 +2,16 @@ import jwt from 'jsonwebtoken';
 import queryString from 'query-string';
 import bcrypt from 'bcryptjs';
 
-import { getUserResponseObject } from './userCtrl.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import HttpError from '../helpers/httpError.js';
-import Session from '../schemas/sessionModel.js';
+import { getUserResponseObject } from './userCtrl.js';
 import { changeUser, findUser, addUser } from '../services/usersServices.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 import {
   createSession,
   deleteSession,
   findSession,
+  updateSession,
 } from '../services/sessionsServices.js';
 
 const refreshTokens = async (req, res, next) => {
@@ -55,6 +55,11 @@ const refreshTokens = async (req, res, next) => {
     newSession._id
   );
 
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: refreshToken.expiresAt }
+  );
+
   // const newAccessToken = tokens.accessToken.value;
 
   // const newAccessToken = tokens.accessToken;
@@ -62,7 +67,7 @@ const refreshTokens = async (req, res, next) => {
   // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
   // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
 
-  await changeUser({ _id: newSession.userId }, { token: accessToken });
+  // await changeUser({ _id: newSession.userId }, { token: accessToken });
 
   res.json({
     status: 'success',
@@ -141,9 +146,7 @@ const googleRedirect = async (req, res, next) => {
     });
   }
 
-  const session = await Session.create({
-    userId: user._id,
-  });
+  const session = await createSession({ userId: user._id });
 
   const { accessToken, refreshToken } = generateTokens(user._id, session._id);
 

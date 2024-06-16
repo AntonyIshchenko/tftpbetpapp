@@ -2,13 +2,14 @@ import * as fs from 'node:fs/promises';
 import bcrypt from 'bcryptjs';
 import sizeOf from 'image-size';
 import 'dotenv/config';
+import jwt from 'jsonwebtoken';
 
 import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession } from '../services/sessionsServices.js';
+import { createSession, deleteSession } from '../services/sessionsServices.js';
 
 import transporter from '../helpers/mail.js';
 
@@ -120,11 +121,12 @@ const loginUser = async (req, res, next) => {
 };
 
 const logoutUser = async (req, res, next) => {
-  const { id } = req.user;
-  const updatedUser = await changeUser({ _id: id }, { token: null });
+  const { id, userId } = req.session;
+  const updatedUser = await changeUser({ _id: userId }, { token: null });
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
+  await deleteSession({ _id: id });
   res.json({
     status: 'success',
     data: null,
@@ -232,8 +234,8 @@ const sendHelpEmail = async (req, res) => {
         <p style="font-family: Roboto, sans-serif;font-size: 14px; font-weight: 500; color: black"> Your message: <span style="font-family: Roboto, sans-serif;font-style: italic; color: #808080; font-size: 14px">"${comment}"</span></p>
         <img src="https://i.gifer.com/NdR.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
       </div>`,
-    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`
-  }
+    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`,
+  };
 
   const mailOptionsToService = {
     from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
@@ -242,13 +244,13 @@ const sendHelpEmail = async (req, res) => {
     html: `User with email ${email} has a problem:
             <h2>${comment}</h2>`,
     text: `User with email ${email} has problem : ${comment}`,
-  }
+  };
 
   await transporter.sendMail(mailOptionsToUser);
   await transporter.sendMail(mailOptionsToService);
 
   res.json({ status: 'success', data: null });
-}
+};
 
 export default {
   registerUser: ctrlWrapper(registerUser),
@@ -256,5 +258,5 @@ export default {
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
-  sendHelpEmail: ctrlWrapper(sendHelpEmail)
+  sendHelpEmail: ctrlWrapper(sendHelpEmail),
 };

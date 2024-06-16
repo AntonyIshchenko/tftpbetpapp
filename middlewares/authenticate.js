@@ -2,7 +2,9 @@ import HttpError from '../helpers/httpError.js';
 import jwt from 'jsonwebtoken';
 import User from '../schemas/userModel.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
-// import Session from '../schemas/sessionModel.js';
+import Session from '../schemas/sessionModel.js';
+import { findSession } from '../services/sessionsServices.js';
+import { findUser } from '../services/usersServices.js';
 
 export const authMiddleware = ctrlWrapper(async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
@@ -17,13 +19,14 @@ export const authMiddleware = ctrlWrapper(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    // const session = await Session.findById(decoded.sessionId);
-    // const user = await User.findById(session.userId);
-    const user = await User.findById(decoded.userId);
+    const session = await findSession({ _id: decoded.sessionId });
+    const user = await findUser({ _id: session.userId });
+
     if (user === null || user.token !== token) {
       throw HttpError(401, 'Not authorized');
     }
     req.user = user;
+    req.session = session;
     next();
   } catch (error) {
     next(HttpError(401, 'Not authorized'));

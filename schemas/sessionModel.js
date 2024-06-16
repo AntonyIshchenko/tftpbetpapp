@@ -10,7 +10,7 @@ const sessionSchema = new Schema(
       default: null,
     },
     expiresAt: {
-      type: String,
+      type: Date,
       default: null,
     },
   },

@@ -55,7 +55,7 @@ const registerUser = async (req, res, next) => {
 
   await updateSession(
     { _id: newSession._id },
-    { expiresAt: refreshToken.expiresAt }
+    { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
   // const accessToken = tokens.accessToken.value;
@@ -111,7 +111,7 @@ const loginUser = async (req, res, next) => {
 
   await updateSession(
     { _id: newSession._id },
-    { expiresAt: refreshToken.expiresAt }
+    { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
   // const accessToken = tokens.accessToken.value;

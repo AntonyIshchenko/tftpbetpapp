@@ -57,7 +57,7 @@ const refreshTokens = async (req, res, next) => {
 
   await updateSession(
     { _id: newSession._id },
-    { expiresAt: refreshToken.expiresAt }
+    { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
   // const newAccessToken = tokens.accessToken.value;

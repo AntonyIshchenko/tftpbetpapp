@@ -173,7 +173,9 @@ const googleRedirect = async (req, res, next) => {
     refreshToken: JSON.stringify(refreshToken),
   });
 
-  return res.redirect(`${process.env.FRONTEND_URL}?${stringifiedParams}`);
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/auth/google?${stringifiedParams}`
+  );
 };
 
 export default {

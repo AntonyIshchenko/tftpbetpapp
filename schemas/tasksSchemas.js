@@ -1,5 +1,8 @@
 import Joi from 'joi';
 import mongoose from 'mongoose';
+import { backgrounds } from '../data/index.js';
+
+const validBackgroundNames = ['', ...backgrounds.map(bg => bg.name)];
 
 const validateObjectId = (fieldName, error) => {
   return Joi.string()
@@ -15,6 +18,19 @@ const validateObjectId = (fieldName, error) => {
       }
       return obj;
     });
+};
+
+const validateFutureDate = (value, helpers) => {
+  const today = new Date();
+  const inputDate = new Date(value);
+
+  today.setHours(0, 0, 0, 0);
+  inputDate.setHours(0, 0, 0, 0);
+
+  if (inputDate < today) {
+    return helpers.message('Deadline date must be today or later');
+  }
+  return value;
 };
 
 const deadlineRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,23 +52,34 @@ const validateDate = (date, checker) => {
 };
 
 // ------------ Board Joi Schema
+
 export const createBoardSchema = Joi.object({
   name: Joi.string().trim().required().messages({
     'any.required': 'Field name is required',
     'string.empty': 'Field name cannot be empty',
   }),
-  // owner: validateObjectId('owner ID', 'Invalid owner ID format'),
   icon: Joi.string().required().messages({
     'any.required': 'Set icon for Board',
     'string.empty': 'Field icon cannot be empty',
   }),
-  background: Joi.string().allow(''),
+  background: Joi.string()
+    .valid(...validBackgroundNames)
+    .messages({
+      'any.only': `Invalid value for field "background". Valid values are: ${validBackgroundNames.join(
+        ', '
+      )}`,
+    }),
 });
-
 export const updateBoardSchema = Joi.object({
   name: Joi.string().trim(),
   icon: Joi.string(),
-  background: Joi.string().allow(''),
+  background: Joi.string()
+    .valid(...validBackgroundNames)
+    .messages({
+      'any.only': `Invalid value for field "background". Valid values are: ${validBackgroundNames.join(
+        ', '
+      )}`,
+    }),
 });
 
 // ------------ Column Joi Schema
@@ -85,7 +112,8 @@ export const createTaskSchema = Joi.object({
     .required()
     .pattern(deadlineRegex)
     .message('Date must be in the format YYYY-MM-DD')
-    .custom(validateDate),
+    .custom(validateDate)
+    .custom(validateFutureDate),
 });
 
 export const updateTaskSchema = Joi.object({
@@ -95,5 +123,6 @@ export const updateTaskSchema = Joi.object({
   deadline: Joi.string()
     .pattern(deadlineRegex)
     .message('Date must be in the format YYYY-MM-DD')
-    .custom(validateDate),
+    .custom(validateDate)
+    .custom(validateFutureDate),
 });

@@ -220,7 +220,7 @@ const sendHelpEmail = async (req, res) => {
     html: `
     <div style="max-width: 600px; margin: 0 auto; border: 1px solid grey; padding: 15px; color: black; font-family: 'Courier New', Courier, monospace; border-radius: 12px;">
       <h1 style="background: grey; color: white; padding: 8px; text-align: center; border-radius: 12px;">Hello Support Team</h1>
-        <p>I hope this message finds you well. I am     reaching out because I am experiencing an issue with your service. Below are the details of the problem I am facing:</p>
+        <p>I hope this message finds you well. I am reaching out because I am experiencing an issue with your service. Below are the details of the problem I am facing:</p>
         <p><b>User Information:</b>
         <br>
         <b>Email:</b> ${email}

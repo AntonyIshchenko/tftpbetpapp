@@ -9,7 +9,11 @@ import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
 import cloudinary from '../helpers/cloudinaryConfig.js';
 import { generateTokens } from '../helpers/generateTokens.js';
-import { createSession, updateSession, deleteSession } from '../services/sessionsServices.js';
+import {
+  createSession,
+  updateSession,
+  deleteSession,
+} from '../services/sessionsServices.js';
 import transporter from '../helpers/mail.js';
 
 export const getUserResponseObject = user => {
@@ -19,6 +23,7 @@ export const getUserResponseObject = user => {
     email: user.email,
     theme: user.theme,
     avatar: user.avatar,
+    oauth: user.oauth,
   };
 };
 
@@ -127,11 +132,17 @@ const updateUser = async (req, res, next) => {
   const { name, email, password, theme } = req.body;
   const updates = {};
 
+  const oauthError = HttpError(
+    400,
+    'Not allowed change user email or password authorized with Google'
+  );
+
   if (name) {
     updates.name = name;
   }
 
   if (email) {
+    if (req.user.oauth) throw oauthError;
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
     if (existUser !== null && existUser._id.toString() !== id) {
@@ -141,6 +152,7 @@ const updateUser = async (req, res, next) => {
   }
 
   if (password) {
+    if (req.user.oauth) throw oauthError;
     updates.password = await bcrypt.hash(password, 10);
   }
 

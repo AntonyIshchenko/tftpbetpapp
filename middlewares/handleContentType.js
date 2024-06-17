@@ -21,14 +21,20 @@ const limits = {
 };
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/jpg',
+    'image/webp',
+  ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(
       HttpError(
         400,
-        'Invalid file type. Only JPG, JPEG, PNG, and GIF are allowed.'
+        'Invalid file type. Only JPG, JPEG, PNG, WEBP and GIF are allowed.'
       )
     );
   }

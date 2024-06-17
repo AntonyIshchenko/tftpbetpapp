@@ -1,20 +1,27 @@
 import Joi from 'joi';
 import mongoose from 'mongoose';
 
-const validateObjectId = (fieldName, error) => {
-  return Joi.string()
-    .required()
-    .trim()
-    .messages({
-      'any.required': `Field ${fieldName} is required`,
-      'string.empty': `Field ${fieldName} cannot be empty`,
-    })
-    .custom((id, obj) => {
-      if (!mongoose.isValidObjectId(id)) {
-        return obj.message(error);
-      }
-      return obj;
-    });
+// const validateObjectId = (fieldName, error) => {
+//   return Joi.string()
+//     .required()
+//     .trim()
+//     .messages({
+//       'any.required': `Field ${fieldName} is required`,
+//       'string.empty': `Field ${fieldName} cannot be empty`,
+//     })
+//     .custom((id, obj) => {
+//       if (!mongoose.isValidObjectId(id)) {
+//         return obj.message(error);
+//       }
+//       return obj;
+//     });
+// };
+
+const validateObjectId = (id, obj) => {
+  if (!mongoose.isValidObjectId(id)) {
+    return obj.message('Invalid ID format');
+  }
+  return obj;
 };
 
 const deadlineRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -41,7 +48,6 @@ export const createBoardSchema = Joi.object({
     'any.required': 'Field name is required',
     'string.empty': 'Field name cannot be empty',
   }),
-  // owner: validateObjectId('owner ID', 'Invalid owner ID format'),
   icon: Joi.string().required().messages({
     'any.required': 'Set icon for Board',
     'string.empty': 'Field icon cannot be empty',
@@ -61,7 +67,14 @@ export const createColumnSchema = Joi.object({
     'any.required': 'Field name is required',
     'string.empty': 'Field name cannot be empty',
   }),
-  boardId: validateObjectId('board ID', 'Invalid board ID format'),
+  boardId: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'any.required': `Field boardId is required`,
+      'string.empty': `Field boardId cannot be empty`,
+    })
+    .custom(validateObjectId),
 });
 
 export const updateColumnSchema = Joi.object({
@@ -75,8 +88,22 @@ export const createTaskSchema = Joi.object({
     'any.required': 'Field name is required',
     'string.empty': 'Field name cannot be empty',
   }),
-  boardId: validateObjectId('board ID', 'Invalid board ID format'),
-  columnId: validateObjectId('column ID', 'Invalid column ID format'),
+  boardId: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'any.required': `Field boardId is required`,
+      'string.empty': `Field boardId cannot be empty`,
+    })
+    .custom(validateObjectId),
+  columnId: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'any.required': `Field columnId is required`,
+      'string.empty': `Field columnId cannot be empty`,
+    })
+    .custom(validateObjectId),
   description: Joi.string().trim().allow(''),
   priority: Joi.string().valid('without', 'low', 'medium', 'high').messages({
     'any.only': 'Priority must be one of "without", "low", "medium", "high"',
@@ -92,6 +119,12 @@ export const updateTaskSchema = Joi.object({
   name: Joi.string().trim(),
   description: Joi.string().trim().allow(''),
   priority: Joi.string().valid('without', 'low', 'medium', 'high'),
+  columnId: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': `Field columnId cannot be empty`,
+    })
+    .custom(validateObjectId),
   deadline: Joi.string()
     .pattern(deadlineRegex)
     .message('Date must be in the format YYYY-MM-DD')

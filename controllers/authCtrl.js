@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import queryString from 'query-string';
 import bcrypt from 'bcryptjs';
@@ -148,12 +149,13 @@ const googleRedirect = async (req, res, next) => {
 
   let user = await findUser({ email: userData.email });
   if (!user) {
-    const passwordHash = await bcrypt.hash(userData.id, 10);
+    const passwordHash = await bcrypt.hash(crypto.randomUUID(), 10);
     user = await addUser({
       name: userData.name ? userData.name : userData.email.split('@')[0],
       email: userData.email,
       password: passwordHash,
       avatar: userData.picture ? userData.picture : null,
+      oauth: true,
     });
   }
 
@@ -161,12 +163,14 @@ const googleRedirect = async (req, res, next) => {
 
   const { accessToken, refreshToken } = generateTokens(user._id, session._id);
 
-  await changeUser({ _id: user._id }, { token: accessToken });
+  await updateSession(
+    { _id: session._id },
+    { expiresAt: new Date(refreshToken.expiresAt) }
+  );
 
   const stringifiedParams = queryString.stringify({
-    ...getUserResponseObject(user),
-    accessToken: [...accessToken].join(' '),
-    refreshToken: [...refreshToken].join(' '),
+    accessToken: JSON.stringify(accessToken),
+    refreshToken: JSON.stringify(refreshToken),
   });
 
   return res.redirect(`${process.env.FRONTEND_URL}?${stringifiedParams}`);

@@ -22,9 +22,9 @@ const userSchema = new Schema(
       minlength: [8, 'Password must be at least 8 characters long'],
       maxlength: [64, 'Password must be at most 64 characters long'],
     },
-    token: {
-      type: String, //  [{}] - така штука не катить. Якщо масив об'эктів - інший підхід.
-      default: null,
+    oauth: {
+      type: Boolean,
+      default: false,
     },
     avatar: {
       type: String,

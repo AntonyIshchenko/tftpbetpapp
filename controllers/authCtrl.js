@@ -17,8 +17,6 @@ import {
 } from '../services/sessionsServices.js';
 
 const refreshTokens = async (req, res, next) => {
-  // const { refreshToken } = req.body;
-
   const notAuthError = HttpError(401, 'Not authorized');
 
   const authorizationHeader = req.headers.authorization;
@@ -61,15 +59,6 @@ const refreshTokens = async (req, res, next) => {
     { _id: newSession._id },
     { expiresAt: new Date(refreshToken.expiresAt) }
   );
-
-  // const newAccessToken = tokens.accessToken.value;
-
-  // const newAccessToken = tokens.accessToken;
-  // const newRefreshToken = tokens.refreshToken;
-  // const accessTokenExpiryDateUTC = tokens.accessTokenExpiresAt;
-  // const refreshTokenExpiryDateUTC = tokens.refreshTokenExpiresAt;
-
-  // await changeUser({ _id: newSession.userId }, { token: accessToken });
 
   res.json({
     status: 'success',

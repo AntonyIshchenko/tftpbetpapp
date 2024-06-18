@@ -39,7 +39,7 @@ const boardSchema = new mongoose.Schema(
 
         if (ret.background) {
           const background = backgrounds.find(
-            elem => (elem.name = ret.background)
+            elem => elem.name === ret.background
           );
 
           ret.background = background

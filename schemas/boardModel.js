@@ -20,7 +20,7 @@ const boardSchema = new mongoose.Schema(
     },
     background: {
       type: String,
-      default: null,
+      default: '',
     },
   },
   {
@@ -52,9 +52,9 @@ const boardSchema = new mongoose.Schema(
                 mobile: background.mobile,
                 mobile2x: background.mobile2x,
               }
-            : null;
+            : '';
         } else {
-          ret.background = null;
+          ret.background = '';
         }
       },
     },

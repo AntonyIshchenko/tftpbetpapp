@@ -191,7 +191,7 @@ const sendHelpEmail = async (req, res) => {
       <h1 style="background: grey; color: white; padding: 8px; text-align: center; border-radius: 12px;">
       Greetings, dear user!
       </h1>
-        <p>
+        <p style="text-align: center;">
           ${email}
         </p>
         <p>
@@ -227,11 +227,10 @@ const sendHelpEmail = async (req, res) => {
         <br><br>
         <b>Issue Description:</b>
         <br>
-        <span style="font-style: italic;">"${comment}"</span>
+        <span style="font-style: italic; color: grey;">"${comment}"</span></p>
+        <p>I would greatly appreciate it if you could look into this matter and provide assistance at your earliest convenience. Thank you for your prompt attention to this issue.
         <br><br>
-        I would greatly appreciate it if you could look into this matter and provide assistance at your earliest convenience. Thank you for your prompt attention to this issue.
-        <br><br>
-        Best regards,
+        <b>Best regards,</b>
         <br>
         Your non-toxic client🪂
       </p>

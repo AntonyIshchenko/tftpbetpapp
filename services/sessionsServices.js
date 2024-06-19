@@ -1,20 +1,17 @@
 import Session from '../schemas/sessionModel.js';
 import 'dotenv/config';
 
-export const findSession = async data => {
-  return await Session.findOne(data);
-};
+export const findSession = async data => Session.findOne(data);
 
-export const createSession = async userId => {
-  return await Session.create(userId);
-};
+export const findAllSessions = async data => Session.find(data);
 
-export const updateSession = (sessionData, updatedData) =>
+export const createSession = async userId => Session.create(userId);
+
+export const updateSession = async (sessionData, updatedData) =>
   Session.findOneAndUpdate(sessionData, updatedData, { new: true });
 
-export const deleteSession = async sessionId => {
-  return await Session.findByIdAndDelete(sessionId);
-};
+export const deleteSession = async sessionId =>
+  Session.findByIdAndDelete(sessionId);
 
 export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
   const sessionsToDelete = await Session.find({
@@ -28,10 +25,3 @@ export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
   });
   return sessionsToDelete;
 };
-
-// export const deleteAllExceptCurrent = async (userId, currentSessionId) => {
-//   return await Session.deleteMany({
-//     userId: userId,
-//     _id: { $ne: currentSessionId },
-//   });
-// };

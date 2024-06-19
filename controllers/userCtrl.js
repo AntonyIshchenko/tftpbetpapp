@@ -13,10 +13,13 @@ import {
   createSession,
   updateSession,
   deleteSession,
+  findAllSessions,
 } from '../services/sessionsServices.js';
 import transporter from '../helpers/mail.js';
 
-export const getUserResponseObject = user => {
+export const getUserResponseObject = async user => {
+  const sessions = await findAllSessions({ userId: user._id });
+
   return {
     id: user._id,
     name: user.name,
@@ -24,6 +27,7 @@ export const getUserResponseObject = user => {
     theme: user.theme,
     avatar: user.avatar,
     oauth: user.oauth,
+    sessions: sessions.map(s => ({ id: s._id })),
   };
 };
 
@@ -63,18 +67,20 @@ const registerUser = async (req, res, next) => {
     { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
+  const userResponse = await getUserResponseObject(user);
+
   res.status(201).json({
     status: 'success',
     data: {
-      user: getUserResponseObject(user),
+      user: userResponse,
       accessToken,
       refreshToken,
     },
   });
 };
 
-const getCurrentUser = (req, res, next) => {
-  const userResponse = getUserResponseObject(req.user);
+const getCurrentUser = async (req, res, next) => {
+  const userResponse = await getUserResponseObject(req.user);
   res.json({
     status: 'success',
     data: {
@@ -107,10 +113,11 @@ const loginUser = async (req, res, next) => {
     { expiresAt: new Date(refreshToken.expiresAt) }
   );
 
+  const userResponse = await getUserResponseObject(existUser);
   res.json({
     status: 'success',
     data: {
-      user: getUserResponseObject(existUser),
+      user: userResponse,
       accessToken,
       refreshToken,
     },
@@ -200,10 +207,12 @@ const updateUser = async (req, res, next) => {
   if (!updatedUser) {
     throw HttpError(404, 'User not found');
   }
+
+  const userResponse = await getUserResponseObject(updatedUser);
   res.json({
     status: 'success',
     data: {
-      user: getUserResponseObject(updatedUser),
+      user: userResponse,
     },
   });
 };
@@ -241,10 +250,8 @@ const sendHelpEmail = async (req, res) => {
       </p>
       <img src="https://i.gifer.com/6vw5.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
     </div>`,
-    text: `We have registered your request with our support team.Please expect a response soon!: ${comment}`
-  }
-
-
+    text: `We have registered your request with our support team.Please expect a response soon!: ${comment}`,
+  };
 
   const mailOptionsToService = {
     from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
@@ -286,5 +293,3 @@ export default {
   getCurrentUser,
   sendHelpEmail: ctrlWrapper(sendHelpEmail),
 };
-
-

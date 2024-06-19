@@ -5,8 +5,7 @@ import bcrypt from 'bcryptjs';
 
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import HttpError from '../helpers/httpError.js';
-import { getUserResponseObject } from './userCtrl.js';
-import { changeUser, findUser, addUser } from '../services/usersServices.js';
+import { findUser, addUser } from '../services/usersServices.js';
 import { generateTokens } from '../helpers/generateTokens.js';
 import {
   createSession,

@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import HttpError from './helpers/httpError.js';
 import taskRouter from './routes/taskRouter.js';
 import userRouter from './routes/userRouter.js';
+import authRouter from './routes/authRouter.js';
 import authMiddleware from './middlewares/authenticate.js';
 
 const swaggerDocument = JSON.parse(fs.readFileSync('./swagger.json', 'utf-8'));
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/users', userRouter);
+app.use('/api/auth', authRouter);
 app.use('/api', authMiddleware, taskRouter);
 
 app.use((req, res, next) => {

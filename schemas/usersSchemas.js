@@ -9,11 +9,18 @@ export const createUserSchema = Joi.object({
     'string.min': 'Field "name" must be at least 2 characters long',
     'string.max': 'Field "name" must be at most 32 characters long',
   }),
-  email: Joi.string().email().lowercase().required().messages({
-    'any.required': 'Field "email" is required',
-    'string.empty': 'Field "email" cannot be empty',
-    'string.email': 'Field "email" must be a valid email address',
-  }),
+  email: Joi.string()
+    .email()
+    .lowercase()
+    .required()
+    .pattern(emailRegExp)
+    .messages({
+      'any.required': 'Field "email" is required',
+      'string.empty': 'Field "email" cannot be empty',
+      'string.email': 'Field "email" must be a valid email address',
+      'string.pattern.base':
+        'Email must be a valid email address. For example: example@domain.com',
+    }),
   password: Joi.string().min(8).max(64).required().messages({
     'any.required': 'Field "password" is required',
     'string.empty': 'Field "password" cannot be empty',
@@ -50,26 +57,15 @@ export const updateUserSchema = Joi.object({
 });
 
 export const mailOptionsToUserSchema = Joi.object({
-  email: Joi.string()
-    .email({ tlds: { allow: false } })
-    .trim()
-    .required()
-    .pattern(emailRegExp)
-    .messages({
-      'string.email': 'Invalid email format. For example: example@domain.com',
-      'string.pattern.base': 'Email must be a valid email address. For example: example@domain.com',
-      'string.empty': 'Email field cannot be empty.',
-      'any.required': 'Email is required.'
-    }),
-  comment: Joi.string()
-    .min(15)
-    .trim()
-    .required()
-    .messages({
-      'string.min': 'Comment must be at least 20 characters long.',
-      'string.empty': 'Comment field cannot be empty.',
-      'any.required': 'Comment is required.'
-    })
+  email: Joi.string().email().trim().required().pattern(emailRegExp).messages({
+    'string.email': 'Invalid email format. For example: example@domain.com',
+    'string.pattern.base':
+      'Email must be a valid email address. For example: example@domain.com',
+    'string.empty': 'Email field cannot be empty.',
+    'any.required': 'Email is required.',
+  }),
+  comment: Joi.string().trim().required().messages({
+    'string.empty': 'Comment field cannot be empty.',
+    'any.required': 'Comment is required.',
+  }),
 });
-
-

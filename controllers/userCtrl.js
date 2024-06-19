@@ -1,22 +1,29 @@
+import * as fs from 'node:fs/promises';
+import bcrypt from 'bcryptjs';
+import sizeOf from 'image-size';
+import 'dotenv/config';
+import jwt from 'jsonwebtoken';
+
 import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import { addUser, findUser, changeUser } from '../services/usersServices.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import 'dotenv/config';
-import * as fs from 'node:fs/promises';
 import cloudinary from '../helpers/cloudinaryConfig.js';
-import sizeOf from 'image-size';
-
+import { generateTokens } from '../helpers/generateTokens.js';
+import {
+  createSession,
+  updateSession,
+  deleteSession,
+} from '../services/sessionsServices.js';
 import transporter from '../helpers/mail.js';
 
-const getUserResponseObject = user => {
+export const getUserResponseObject = user => {
   return {
     id: user._id,
     name: user.name,
     email: user.email,
     theme: user.theme,
     avatar: user.avatar,
+    oauth: user.oauth,
   };
 };
 
@@ -43,15 +50,25 @@ const registerUser = async (req, res, next) => {
     theme: userTheme,
   };
   const user = await addUser(userData);
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.TOKEN_EXPIRES_IN,
-  });
-  const updatedUser = await changeUser({ _id: user._id }, { token });
+
+  const newSession = await createSession({ userId: user._id });
+
+  const { accessToken, refreshToken } = generateTokens(
+    user._id,
+    newSession._id
+  );
+
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: new Date(refreshToken.expiresAt) }
+  );
+
   res.status(201).json({
     status: 'success',
     data: {
-      user: getUserResponseObject(updatedUser),
-      token: token,
+      user: getUserResponseObject(user),
+      accessToken,
+      refreshToken,
     },
   });
 };
@@ -77,25 +94,33 @@ const loginUser = async (req, res, next) => {
   if (!isMatch) {
     throw HttpError(401, 'Email or password is wrong');
   }
-  const token = jwt.sign({ id: existUser._id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
-  await changeUser({ email: emailInLowerCase }, { token });
+
+  const newSession = await createSession({ userId: existUser._id });
+
+  const { accessToken, refreshToken } = generateTokens(
+    existUser._id,
+    newSession._id
+  );
+
+  await updateSession(
+    { _id: newSession._id },
+    { expiresAt: new Date(refreshToken.expiresAt) }
+  );
+
   res.json({
     status: 'success',
     data: {
       user: getUserResponseObject(existUser),
-      token: token,
+      accessToken,
+      refreshToken,
     },
   });
 };
 
 const logoutUser = async (req, res, next) => {
-  const { id } = req.user;
-  const updatedUser = await changeUser({ _id: id }, { token: null });
-  if (!updatedUser) {
-    throw HttpError(404, 'User not found');
-  }
+  const { id } = req.session;
+
+  await deleteSession({ _id: id });
   res.json({
     status: 'success',
     data: null,
@@ -107,11 +132,17 @@ const updateUser = async (req, res, next) => {
   const { name, email, password, theme } = req.body;
   const updates = {};
 
+  const oauthError = HttpError(
+    400,
+    'Not allowed change user email or password authorized with Google'
+  );
+
   if (name) {
     updates.name = name;
   }
 
   if (email) {
+    if (req.user.oauth) throw oauthError;
     const emailInLowerCase = email.toLowerCase();
     const existUser = await findUser({ email: emailInLowerCase });
     if (existUser !== null && existUser._id.toString() !== id) {
@@ -121,6 +152,7 @@ const updateUser = async (req, res, next) => {
   }
 
   if (password) {
+    if (req.user.oauth) throw oauthError;
     updates.password = await bcrypt.hash(password, 10);
   }
 
@@ -150,7 +182,7 @@ const updateUser = async (req, res, next) => {
         try {
           await cloudinary.uploader.destroy(req.user.avatarPublicId);
         } catch (error) {
-          // we don't think that error should stop our flow 
+          // we don't think that error should stop our flow
         }
       }
       await fs.unlink(req.file.path);
@@ -213,6 +245,7 @@ const sendHelpEmail = async (req, res) => {
   }
 
 
+
   const mailOptionsToService = {
     from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
     to: process.env.CUSTOMER_SERVICE, // адреса служби підтримки
@@ -237,14 +270,13 @@ const sendHelpEmail = async (req, res) => {
     <img src="https://i.gifer.com/yH.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
   </div>`,
     text: `User with email ${email} has problem : ${comment}`,
-  }
-
+  };
 
   await transporter.sendMail(mailOptionsToUser);
   await transporter.sendMail(mailOptionsToService);
 
   res.json({ status: 'success', data: null });
-}
+};
 
 export default {
   registerUser: ctrlWrapper(registerUser),
@@ -252,7 +284,7 @@ export default {
   logoutUser: ctrlWrapper(logoutUser),
   updateUser: ctrlWrapper(updateUser),
   getCurrentUser,
-  sendHelpEmail: ctrlWrapper(sendHelpEmail)
+  sendHelpEmail: ctrlWrapper(sendHelpEmail),
 };
 
 

@@ -2,6 +2,8 @@ import HttpError from '../helpers/httpError.js';
 import ctrlWrapper from '../helpers/ctrlWrapper.js';
 import taskServices from '../services/taskServices.js';
 
+import { backgrounds } from '../data/index.js';
+
 const success = data => ({
   status: 'success',
   data,
@@ -12,7 +14,12 @@ const getAllBoards = async (req, res) => {
   const userId = req.user.id;
   const boards = await taskServices.board.getAll(userId);
 
-  res.json(success({ boards }));
+  const backgroundLogos = backgrounds.map(elem => ({
+    name: elem.name,
+    mini: elem.mini,
+    mini2x: elem.mini2x,
+  }));
+  res.json(success({ boards, backgroundLogos }));
 };
 
 const getOneBoard = async (req, res) => {

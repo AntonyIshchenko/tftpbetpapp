@@ -219,31 +219,56 @@ const sendHelpEmail = async (req, res) => {
     to: email, //Використовуємо email з req.body як відправника
     subject: 'Customer Support Request',
     html: `
-      <div style="max-width: 600px; margin: 0 auto;">
-        <h1 style="font-family: Roboto, sans-serif; font-size: 16px; font-weight: 400; color: black">
-          Hello, <span style="font-family: Roboto, sans-serif;font-size: 16px; font-style: italic;">${email}</span>
-        </h1>
-        <p style="font-family: Roboto, sans-serif;font-size: 16px; color: black">
-          Thank you for reaching out to us. We have received your request and it has been successfully forwarded to our technical support team for review. Please expect a response from us very soon!
-          <br><br>
-            We appreciate your patience and trust in our TaskPro service. If you have any further questions or concerns, feel free to reach out to us anytime.
-          <br><br>
-          Best regards,<br>
-          <b>TaskPro</b>
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid grey; padding: 15px; color: black; font-family: 'Courier New', Courier, monospace; border-radius: 12px;">
+      <h1 style="background: grey; color: white; padding: 8px; text-align: center; border-radius: 12px;">
+      Greetings, dear user!
+      </h1>
+        <p style="text-align: center;">
+          ${email}
         </p>
+        <p>
+        <b>Thank you for reaching out to us. We have received your request and it has been successfully forwarded to our technical support team for review. Please expect a response from us very soon!</b>
+        <br><br>
+        We appreciate your patience and trust in our TaskPro service. If you have any further questions or concerns, feel free to reach out to us anytime.
+        <br><br>
+        <b>Issue Description:</b>
+        <br>
+        <span style="font-style: italic; color: #808080; text-decoration: none;">"${comment}"</span>
+        <br><br>
+        Best regards,
+        <br>
+        <b>TaskPro ⚙️</b>
+      </p>
+      <img src="https://i.gifer.com/6vw5.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
+    </div>`,
+    text: `We have registered your request with our support team.Please expect a response soon!: ${comment}`
+  }
 
-        <p style="font-family: Roboto, sans-serif;font-size: 14px; font-weight: 500; color: black"> Your message: <span style="font-family: Roboto, sans-serif;font-style: italic; color: #808080; font-size: 14px">"${comment}"</span></p>
-        <img src="https://i.gifer.com/NdR.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
-      </div>`,
-    text: `We have registered your request with our support team. Please expect a response soon! : ${comment}`,
-  };
+
 
   const mailOptionsToService = {
     from: process.env.GMAIL_USER, //адреса з якої відправляється листи до служби підтримки
     to: process.env.CUSTOMER_SERVICE, // адреса служби підтримки
     subject: 'Customer Help Request',
-    html: `User with email ${email} has a problem:
-            <h2>${comment}</h2>`,
+    html: `
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid grey; padding: 15px; color: black; font-family: 'Courier New', Courier, monospace; border-radius: 12px;">
+      <h1 style="background: grey; color: white; padding: 8px; text-align: center; border-radius: 12px;">Hello Support Team</h1>
+        <p>I hope this message finds you well. I am reaching out because I am experiencing an issue with your service. Below are the details of the problem I am facing:</p>
+        <p><b>User Information:</b>
+        <br>
+        <b>Email:</b> ${email}
+        <br><br>
+        <b>Issue Description:</b>
+        <br>
+        <span style="font-style: italic; color: grey;">"${comment}"</span></p>
+        <p>I would greatly appreciate it if you could look into this matter and provide assistance at your earliest convenience. Thank you for your prompt attention to this issue.
+        <br><br>
+        <b>Best regards,</b>
+        <br>
+        Your non-toxic client🪂
+      </p>
+    <img src="https://i.gifer.com/yH.gif" alt="Animation" style="display: block; width: 30%; height: 30%;">
+  </div>`,
     text: `User with email ${email} has problem : ${comment}`,
   };
 
@@ -261,3 +286,5 @@ export default {
   getCurrentUser,
   sendHelpEmail: ctrlWrapper(sendHelpEmail),
 };
+
+

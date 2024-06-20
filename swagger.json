@@ -1520,14 +1520,36 @@
             "type": "object",
             "properties": {
               "accessToken": {
-                "type": "string",
-                "description": "User access token",
-                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+                "type": "object",
+                "description": "User access token object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "User access token value",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "description": "User access token expires date in ISO string",
+                    "example": "2024-06-20T09:18:40.871Z"
+                  }
+                }
               },
               "refreshToken": {
-                "type": "string",
-                "description": "User refresh token",
-                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+                "type": "object",
+                "description": "User refresh token object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "User refresh token value",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjE2ZTg1OGFkOGY4ZDU4ODEzM2Y2YiIsImlhdCI6MTcxNzY2NTkwOCwiZXhwIjoxNzE3NjY5NTA4fQ.EfMCfp68u0cIcrr0fhgCmcxUBauMUrh6nn8KsquqeTE"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "description": "User refresh token expires date in ISO string",
+                    "example": "2024-06-25T09:18:40.871Z"
+                  }
+                }
               }
             }
           }
@@ -1637,7 +1659,7 @@
                   },
                   "background": {
                     "type": "object",
-                    "description": "Board background set object or null",
+                    "description": "Board background set object or empty string  ",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -1715,7 +1737,7 @@
                     },
                     "background": {
                       "type": "object",
-                      "description": "Board background set object or null",
+                      "description": "Board background set object or empty string",
                       "properties": {
                         "name": {
                           "type": "string",
@@ -1775,7 +1797,7 @@
                     "id": "66621f23aa779d7c5815ac64",
                     "name": "My project 2",
                     "icon": "icon-star",
-                    "background": null
+                    "background": ""
                   }
                 ]
               },
@@ -1849,7 +1871,7 @@
                   },
                   "background": {
                     "type": "object",
-                    "description": "Board background set object or null",
+                    "description": "Board background set object or empthy string",
                     "properties": {
                       "name": {
                         "type": "string",

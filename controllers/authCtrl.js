@@ -74,7 +74,7 @@ const closeAllSessions = async (req, res, next) => {
 
   res.json({
     status: 'success',
-    data: deletedSessions, // повертає масив видалених сессій.
+    data: { sessions: deletedSessions }, // повертає масив видалених сессій.
   });
 };
 

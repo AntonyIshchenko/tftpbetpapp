@@ -27,7 +27,8 @@ export const getUserResponseObject = async user => {
     theme: user.theme,
     avatar: user.avatar,
     oauth: user.oauth,
-    sessions: sessions.map(s => ({ id: s._id })),
+    // sessions: sessions.map(s => ({ id: s._id })),
+    sessions,
   };
 };
 

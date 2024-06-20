@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-const queryProjection = '-updatedAt';
+const queryProjection = '-updatedAt -userId';
 
 const sessionSchema = new Schema(
   {
